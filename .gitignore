@@ -1,6 +1,7 @@
 /node_modules
 /public/hot
 /public/storage
+/public/build
 /storage/*.key
 /storage/app/audio
 /storage/app/pdf
@@ -8,6 +9,7 @@
 /vendor
 .env
 .env.backup
+.env.production
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
