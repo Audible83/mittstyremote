@@ -95,7 +95,7 @@ class MeetingController extends Controller
         // Security: Validate file content type
         $uploadedFile = $request->file('chunk');
         $mimeType = $uploadedFile->getMimeType();
-        $allowedMimes = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav', 'audio/mpeg', 'video/webm'];
+        $allowedMimes = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav', 'audio/mpeg', 'audio/x-wav', 'video/webm'];
 
         if (!in_array($mimeType, $allowedMimes)) {
             return response()->json([
@@ -156,7 +156,12 @@ class MeetingController extends Controller
 
         \Log::info("Assembling " . count($chunks) . " chunks for meeting {$meeting->id}");
 
-        $finalPath = "audio/meeting_{$meeting->id}_" . now()->format('Ymd_His') . ".webm";
+        // Determine final format based on first chunk
+        $firstChunk = basename($chunks[0]);
+        $isWav = str_ends_with(strtolower($firstChunk), '.wav');
+        $finalExtension = $isWav ? 'wav' : 'webm';
+
+        $finalPath = "audio/meeting_{$meeting->id}_" . now()->format('Ymd_His') . ".{$finalExtension}";
         $finalFullPath = Storage::path($finalPath);
 
         // Ensure output directory exists
@@ -165,8 +170,8 @@ class MeetingController extends Controller
             mkdir($outputDir, 0775, true);
         }
 
-        // Use FFmpeg for proper WebM concatenation
-        $this->concatenateWithFFmpeg($chunks, $finalFullPath, $meeting->id);
+        // Use FFmpeg for proper audio concatenation (supports both WAV and WebM)
+        $this->concatenateWithFFmpeg($chunks, $finalFullPath, $meeting->id, $isWav);
 
         // Cleanup chunks
         Storage::deleteDirectory($chunkPath);
@@ -179,7 +184,7 @@ class MeetingController extends Controller
         ]);
     }
 
-    private function concatenateWithFFmpeg(array $chunks, string $output, int $meetingId): void
+    private function concatenateWithFFmpeg(array $chunks, string $output, int $meetingId, bool $isWav = false): void
     {
         // Create concat list file
         $concatListPath = storage_path("app/temp/concat_{$meetingId}.txt");
@@ -201,14 +206,26 @@ class MeetingController extends Controller
 
         file_put_contents($concatListPath, $concatContent);
 
-        // Run FFmpeg
+        // Run FFmpeg - for WAV we need to re-encode to ensure compatibility
         $ffmpegPath = env('FFMPEG_PATH', 'ffmpeg');
-        $command = sprintf(
-            '%s -f concat -safe 0 -i %s -c copy %s 2>&1',
-            escapeshellarg($ffmpegPath),
-            escapeshellarg($concatListPath),
-            escapeshellarg($output)
-        );
+
+        if ($isWav) {
+            // For WAV files from VAD: ensure 16kHz, mono, 16-bit PCM (optimal for Whisper)
+            $command = sprintf(
+                '%s -f concat -safe 0 -i %s -ar 16000 -ac 1 -c:a pcm_s16le %s 2>&1',
+                escapeshellarg($ffmpegPath),
+                escapeshellarg($concatListPath),
+                escapeshellarg($output)
+            );
+        } else {
+            // For WebM: simple copy
+            $command = sprintf(
+                '%s -f concat -safe 0 -i %s -c copy %s 2>&1',
+                escapeshellarg($ffmpegPath),
+                escapeshellarg($concatListPath),
+                escapeshellarg($output)
+            );
+        }
 
         exec($command, $outputLines, $returnCode);
 

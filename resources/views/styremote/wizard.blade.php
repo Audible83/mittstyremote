@@ -163,13 +163,24 @@
                 <div class="inline-block bg-red-600 text-white px-8 py-4 rounded-full text-4xl font-mono">
                     @{{ recordingTime }}
                 </div>
+                <div class="mt-4" v-if="speechDetected">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        <span class="w-2 h-2 bg-green-600 rounded-full mr-2 animate-pulse"></span>
+                        Tale detektert
+                    </span>
+                </div>
+                <div class="mt-4" v-else>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600">
+                        Venter på tale...
+                    </span>
+                </div>
             </div>
 
             <div class="mb-8">
                 <div class="bg-gray-200 rounded-full h-2">
                     <div class="bg-red-600 h-2 rounded-full transition-all duration-300" :style="{width: uploadProgress + '%'}"></div>
                 </div>
-                <p class="text-sm text-gray-600 text-center mt-2">Upload: @{{ uploadProgress }}%</p>
+                <p class="text-sm text-gray-600 text-center mt-2">Chunks lastet opp: @{{ chunkSeq }}</p>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3">
@@ -266,12 +277,14 @@ createApp({
             ],
             consent: false,
             meetingId: null,
-            mediaRecorder: null,
+            vadRecorder: null,
             recordingTime: '00:00:00',
             recordingInterval: null,
             recordingStartTime: null,
             chunkSeq: 0,
-            uploadProgress: 0
+            uploadProgress: 0,
+            speechDetected: false,
+            totalSpeechDuration: 0
         };
     },
     methods: {
@@ -403,12 +416,9 @@ createApp({
 
             this.step = 5;
 
-            // Start recording
+            // Start VAD recording
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                this.mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'audio/webm;codecs=opus'
-                });
+                this.vadRecorder = new window.VADRecorder();
 
                 this.recordingStartTime = Date.now();
                 this.recordingInterval = setInterval(() => {
@@ -419,57 +429,54 @@ createApp({
                     this.recordingTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
                 }, 1000);
 
-                this.mediaRecorder.ondataavailable = async (event) => {
-                    if (event.data.size > 0) {
-                        await this.uploadChunk(event.data, false);
-                    }
-                };
+                // Start VAD with chunk upload callback
+                await this.vadRecorder.start(async (wavBlob) => {
+                    this.speechDetected = true;
+                    await this.uploadChunk(wavBlob, false);
+                });
 
-                this.mediaRecorder.start(5000); // 5 second chunks
+                console.log('[Wizard] VAD recording started');
             } catch (error) {
-                console.error('Recording failed:', error);
-                alert('Kunne ikke starte opptak. Sjekk mikrofontilgang.');
+                console.error('[Wizard] Recording failed:', error);
+                alert('Kunne ikke starte opptak. Sjekk mikrofontilgang og prøv igjen.');
             }
         },
         async cancelRecording() {
             if (confirm('Er du sikker på at du vil avbryte opptaket? All data vil gå tapt.')) {
-                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-                    this.mediaRecorder.stop();
-                    this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                if (this.vadRecorder) {
+                    await this.vadRecorder.stop();
                     clearInterval(this.recordingInterval);
                 }
                 window.location.href = '/';
             }
         },
         async stopRecording() {
-            if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-                this.mediaRecorder.stop();
-                this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            if (this.vadRecorder) {
                 clearInterval(this.recordingInterval);
 
-                // Upload last chunk
-                this.mediaRecorder.onstop = async () => {
-                    try {
-                        // Finalize
-                        const response = await fetch(`/api/meetings/${this.meetingId}/finalize`, {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken
-                            }
-                        });
+                // Stop VAD recorder
+                await this.vadRecorder.stop();
 
-                        if (!response.ok) {
-                            throw new Error('Finalisering feilet');
+                try {
+                    // Finalize
+                    const response = await fetch(`/api/meetings/${this.meetingId}/finalize`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
                         }
+                    });
 
-                        // Redirect to status page
-                        window.location.href = `/styremote/${this.meetingId}/status`;
-                    } catch (error) {
-                        console.error('Finalize failed:', error);
-                        alert('Kunne ikke fullføre opptaket. Prøv igjen eller kontakt support.');
+                    if (!response.ok) {
+                        throw new Error('Finalisering feilet');
                     }
-                };
+
+                    // Redirect to status page
+                    window.location.href = `/styremote/${this.meetingId}/status`;
+                } catch (error) {
+                    console.error('[Wizard] Finalize failed:', error);
+                    alert('Kunne ikke fullføre opptaket. Prøv igjen eller kontakt support.');
+                }
             }
         },
         async uploadChunk(blob, isLast) {
