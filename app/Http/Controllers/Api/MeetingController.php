@@ -21,7 +21,7 @@ class MeetingController extends Controller
             'company_address' => 'nullable|string|max:500',
             'meeting_datetime' => 'required|date|after:2020-01-01|before:2030-12-31',
             'meeting_location' => 'required|string|max:255',
-            'chair_name' => 'required|string|max:255|regex:/^[\pL\s\-\.]+$/u',
+            'chair_name' => 'required|string|max:255|regex:/^[\pL\s\-0-9\.]+$/u',
             'quorum_ok' => 'required|boolean',
             'agenda_text' => 'nullable|string|max:10000',
         ]);
@@ -48,7 +48,7 @@ class MeetingController extends Controller
     {
         $validated = $request->validate([
             'participants' => 'required|array|min:1|max:50',
-            'participants.*.name' => 'required|string|max:255|regex:/^[\pL\s\-\.]+$/u',
+            'participants.*.name' => 'required|string|max:255|regex:/^[\pL\s\-0-9\.]+$/u',
             'participants.*.role' => 'required|string|in:styreleder,styremedlem,varamedlem,daglig_leder,observator',
             'participants.*.email' => 'nullable|email:rfc,dns|max:255',
             'participants.*.is_present' => 'boolean',
@@ -92,6 +92,18 @@ class MeetingController extends Controller
             'is_last' => 'required|boolean',
         ]);
 
+        // Security: Validate file content type
+        $uploadedFile = $request->file('chunk');
+        $mimeType = $uploadedFile->getMimeType();
+        $allowedMimes = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav', 'audio/mpeg', 'video/webm'];
+
+        if (!in_array($mimeType, $allowedMimes)) {
+            return response()->json([
+                'error' => 'Invalid file type',
+                'detected' => $mimeType
+            ], 400);
+        }
+
         // Verify meeting state
         if (!in_array($meeting->state, ['created', 'uploading'])) {
             return response()->json([
@@ -107,9 +119,16 @@ class MeetingController extends Controller
         $meeting->update(['state' => 'uploading']);
 
         $chunkPath = "audio/chunks/{$meeting->id}";
-        $chunkFile = $request->file('chunk')->storeAs(
+
+        // Security: Sanitize filename and use proper extension
+        $extension = $uploadedFile->getClientOriginalExtension();
+        if (!in_array($extension, ['webm', 'ogg', 'mp4', 'wav', 'mp3'])) {
+            $extension = 'webm';
+        }
+
+        $chunkFile = $uploadedFile->storeAs(
             $chunkPath,
-            "chunk_{$request->seq}.webm"
+            sprintf("chunk_%05d.%s", $request->seq, $extension)
         );
 
         if ($request->boolean('is_last')) {
@@ -128,10 +147,10 @@ class MeetingController extends Controller
             throw new \Exception("No audio chunks found for meeting {$meeting->id}");
         }
 
-        // Numeric sort by chunk number
+        // Numeric sort by chunk number (supports multiple extensions)
         usort($chunks, function($a, $b) {
-            preg_match('/chunk_(\d+)\.webm$/', basename($a), $matchA);
-            preg_match('/chunk_(\d+)\.webm$/', basename($b), $matchB);
+            preg_match('/chunk_(\d+)\.\w+$/', basename($a), $matchA);
+            preg_match('/chunk_(\d+)\.\w+$/', basename($b), $matchB);
             return (int)($matchA[1] ?? 0) <=> (int)($matchB[1] ?? 0);
         });
 

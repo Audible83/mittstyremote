@@ -89,9 +89,12 @@ createApp({
     },
     methods: {
         async startPolling() {
+            // Poll every 5 seconds instead of 3 to avoid rate limit (60/min = 1/sec)
             this.pollInterval = setInterval(async () => {
                 await this.checkStatus();
-            }, 3000);
+            }, 5000);
+            // Do initial check immediately
+            await this.checkStatus();
         },
         async checkStatus() {
             try {

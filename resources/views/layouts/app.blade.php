@@ -6,9 +6,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Mitt Styremøte')</title>
 
-    <!-- Vue 3 CDN -->
-    <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-50">

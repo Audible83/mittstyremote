@@ -28,7 +28,7 @@ Route::post('/meetings/{meeting}/finalize', [MeetingController::class, 'finalize
 
 // Status polling - allow frequent checks
 Route::get('/meetings/{meeting}/status', [MeetingController::class, 'status'])
-    ->middleware('throttle:60,1'); // 1 request per second for polling
+    ->middleware('throttle:20,1'); // 20 requests per minute for polling (1 every 3 seconds)
 
 // Downloads - moderate limit
 Route::get('/meetings/{meeting}/download/{type}', [MeetingController::class, 'download'])
