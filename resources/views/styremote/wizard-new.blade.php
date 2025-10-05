@@ -287,13 +287,46 @@
             @{{ generating ? '⏳ Genererer...' : '📝 Generer styrenotat' }}
         </button>
 
+        <!-- Loading Skeleton -->
+        <div v-if="generating" class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-4 animate-pulse">
+            <div class="flex justify-between items-center mb-4">
+                <div class="h-6 bg-gray-200 rounded w-32"></div>
+                <div class="flex gap-2">
+                    <div class="h-10 bg-gray-200 rounded w-32"></div>
+                    <div class="h-10 bg-gray-200 rounded w-20"></div>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="h-8 bg-gray-200 rounded w-3/4"></div>
+                <div class="h-4 bg-gray-100 rounded w-full"></div>
+                <div class="h-4 bg-gray-100 rounded w-full"></div>
+                <div class="h-4 bg-gray-100 rounded w-5/6"></div>
+                <div class="h-6 bg-gray-200 rounded w-2/3 mt-6"></div>
+                <div class="h-4 bg-gray-100 rounded w-full"></div>
+                <div class="h-4 bg-gray-100 rounded w-full"></div>
+                <div class="h-4 bg-gray-100 rounded w-4/5"></div>
+            </div>
+            <div class="mt-4 text-center text-sm text-gray-500">
+                <svg class="animate-spin h-5 w-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                AI genererer styrenotat...
+            </div>
+        </div>
+
         <!-- Generated Document -->
-        <div v-if="styrenotat" class="bg-white border-2 border-gray-200 rounded-xl p-6">
+        <div v-if="styrenotat && !generating" class="bg-white border-2 border-gray-200 rounded-xl p-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-semibold">Styrenotat</h3>
                 <div class="flex gap-2">
-                    <button @click="downloadPDF" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        📄 Last ned PDF
+                    <button @click="downloadPDF" :disabled="downloadingPDF"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
+                        <svg v-if="downloadingPDF" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>@{{ downloadingPDF ? 'Laster...' : '📄 Last ned PDF' }}</span>
                     </button>
                     <button @click="shareNotat" class="px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
                         🔗 Del
@@ -380,7 +413,9 @@ const app = createApp({
                 companyName: '',
                 meetingDate: '',
                 participants: []
-            }
+            },
+            // Loading states
+            downloadingPDF: false
         };
     },
     methods: {
@@ -619,7 +654,18 @@ const app = createApp({
             this.clearDraft();
         },
         async downloadPDF() {
-            window.open(`/api/meetings/${this.meetingId}/download/pdf`, '_blank');
+            this.downloadingPDF = true;
+            try {
+                window.open(`/api/meetings/${this.meetingId}/download/pdf`, '_blank');
+                // Small delay to show the loading state
+                setTimeout(() => {
+                    this.downloadingPDF = false;
+                }, 1000);
+            } catch (error) {
+                console.error('[PDF] Download failed:', error);
+                alert('Kunne ikke laste ned PDF');
+                this.downloadingPDF = false;
+            }
         },
         shareNotat() {
             // TODO: Implement share functionality
