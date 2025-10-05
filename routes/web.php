@@ -7,6 +7,23 @@ use Illuminate\Support\Facades\Route;
 // Health check endpoint
 Route::get('/health', [HealthController::class, 'check'])->name('health');
 
+// Debug route to check OpenAI key file
+Route::get('/debug/storage', function () {
+    $keyFile = config('services.openai.key_file', 'openai_api.key');
+    $storagePath = storage_path('app/' . $keyFile);
+
+    return response()->json([
+        'config_key_file' => $keyFile,
+        'full_path' => $storagePath,
+        'file_exists_storage' => \Storage::exists($keyFile),
+        'file_exists_path' => file_exists($storagePath),
+        'is_readable' => is_readable($storagePath),
+        'storage_app_path' => storage_path('app'),
+        'storage_app_exists' => is_dir(storage_path('app')),
+        'storage_app_writable' => is_writable(storage_path('app')),
+    ]);
+});
+
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
