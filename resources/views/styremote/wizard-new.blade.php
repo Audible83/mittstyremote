@@ -211,7 +211,16 @@
     const { createApp } = window.Vue;
     console.log('[Wizard] createApp:', createApp);
 
+    // Store the template content before creating app
+    const appElement = document.getElementById('app');
+    const templateContent = appElement.innerHTML;
+    console.log('[Wizard] Template length:', templateContent.length);
+
+    // Clear the element
+    appElement.innerHTML = '';
+
 const app = createApp({
+    template: templateContent,
     data() {
         return {
             step: 1,
@@ -341,10 +350,9 @@ const app = createApp({
 });
 
 console.log('[Wizard] Mounting to #app...');
-const appElement = document.getElementById('app');
 console.log('[Wizard] App element found:', appElement);
 
-const vm = app.mount('#app');
+const vm = app.mount(appElement);
 console.log('[Wizard] Mounted successfully! VM:', vm);
 
 })().catch(err => {
