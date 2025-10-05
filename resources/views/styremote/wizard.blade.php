@@ -253,20 +253,33 @@
 <script type="module">
 // Wait for app.js to load Vue globally
 (async () => {
+    console.log('[Wizard] Starting initialization...');
+
     await new Promise(resolve => {
         if (window.Vue) {
+            console.log('[Wizard] Vue already available');
             resolve();
         } else {
+            console.log('[Wizard] Waiting for Vue...');
             const checkVue = setInterval(() => {
                 if (window.Vue) {
+                    console.log('[Wizard] Vue now available');
                     clearInterval(checkVue);
                     resolve();
                 }
             }, 100);
+
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                clearInterval(checkVue);
+                console.error('[Wizard] Vue failed to load after 5 seconds');
+                alert('Vue failed to load. Please refresh the page.');
+            }, 5000);
         }
     });
 
     const { createApp } = window.Vue;
+    console.log('[Wizard] Creating Vue app...');
 
     // Get CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -520,6 +533,11 @@
         }
     }
     }).mount('#wizard-app');
-})();
+
+    console.log('[Wizard] Vue app mounted successfully');
+})().catch(err => {
+    console.error('[Wizard] Initialization error:', err);
+    alert('Failed to initialize wizard: ' + err.message);
+});
 </script>
 @endsection
