@@ -1,7 +1,8 @@
 /node_modules
 /public/hot
 /public/storage
-/public/build
+# Uncomment below to ignore build files (we include them for Plesk deployment)
+# /public/build
 /storage/*.key
 /storage/app/audio
 /storage/app/pdf
