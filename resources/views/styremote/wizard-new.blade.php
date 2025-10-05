@@ -53,6 +53,8 @@
             <div>
                 <label class="block text-sm font-medium mb-2">Møteprogram / Agenda (valgfritt)</label>
                 <textarea v-model="company.agenda" rows="6"
+                          lang="no"
+                          spellcheck="true"
                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
                           placeholder="Skriv inn saksliste eller lim inn møteprogrammet her...&#10;&#10;Eksempel:&#10;Sak 1: Godkjenning av innkalling&#10;Sak 2: Godkjenning av referat fra forrige møte&#10;Sak 3: Årsregnskap og årsberetning&#10;Sak 4: Eventuelt"></textarea>
             </div>
@@ -139,6 +141,8 @@
         <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6">
             <h2 class="text-lg font-semibold mb-4">Live transkripsjon</h2>
             <textarea v-model="transcription"
+                      lang="no"
+                      spellcheck="true"
                       class="w-full h-64 border-2 border-gray-200 rounded-lg p-4 focus:border-blue-500 focus:outline-none font-mono text-sm"
                       placeholder="Transkripsjonen vises her etter hvert som møtet pågår..."></textarea>
         </div>
@@ -166,6 +170,8 @@
                 <span class="text-sm text-gray-500">Rediger og fyll inn detaljer før generering</span>
             </div>
             <textarea v-model="transcription" rows="12"
+                      lang="no"
+                      spellcheck="true"
                       class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none font-mono text-sm"
                       placeholder="Ingen transkripsjon tilgjengelig. Du kan skrive inn notater manuelt her..."></textarea>
             <p class="text-sm text-gray-500 mt-2">💡 Tips: Legg til detaljer om beslutninger, avstemninger, og hvem som sa hva for bedre styrenotat.</p>
@@ -352,6 +358,9 @@ const app = createApp({
             const data = await response.json();
             this.styrenotat = data.html;
             this.generating = false;
+
+            // Clear draft since meeting is completed
+            this.clearDraft();
         },
         async downloadPDF() {
             window.open(`/api/meetings/${this.meetingId}/download/pdf`, '_blank');
@@ -359,6 +368,91 @@ const app = createApp({
         shareNotat() {
             // TODO: Implement share functionality
             alert('Del-funksjon kommer snart');
+        },
+        saveDraft() {
+            const draft = {
+                step: this.step,
+                company: this.company,
+                participants: this.participants,
+                consent: this.consent,
+                transcription: this.transcription,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('mittstyremote_draft', JSON.stringify(draft));
+            console.log('[AutoSave] Draft saved');
+        },
+        loadDraft() {
+            const saved = localStorage.getItem('mittstyremote_draft');
+            if (saved) {
+                try {
+                    const draft = JSON.parse(saved);
+                    const age = Date.now() - draft.timestamp;
+
+                    // Show resume dialog if draft is less than 24 hours old
+                    if (age < 24 * 60 * 60 * 1000) {
+                        const resume = confirm(
+                            `Du har et ulagret møte fra ${Math.round(age / 3600000)} timer siden.\n\n` +
+                            `Vil du fortsette hvor du slapp?`
+                        );
+
+                        if (resume) {
+                            this.step = draft.step;
+                            this.company = draft.company;
+                            this.participants = draft.participants;
+                            this.consent = draft.consent;
+                            this.transcription = draft.transcription || '';
+                            console.log('[AutoSave] Draft restored');
+                        } else {
+                            localStorage.removeItem('mittstyremote_draft');
+                        }
+                    } else {
+                        localStorage.removeItem('mittstyremote_draft');
+                    }
+                } catch (e) {
+                    console.error('[AutoSave] Failed to load draft', e);
+                }
+            }
+        },
+        clearDraft() {
+            localStorage.removeItem('mittstyremote_draft');
+            console.log('[AutoSave] Draft cleared');
+        }
+    },
+    mounted() {
+        // Load draft on mount
+        this.loadDraft();
+
+        // Auto-save every 30 seconds
+        this.autoSaveInterval = setInterval(() => {
+            if (this.step > 0 && this.step < 5 && !this.meetingId) {
+                this.saveDraft();
+            }
+        }, 30000);
+    },
+    beforeUnmount() {
+        // Clear auto-save interval
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+        }
+    },
+    watch: {
+        // Save on significant changes
+        'company.name'() {
+            if (this.company.name) {
+                clearTimeout(this.saveTimeout);
+                this.saveTimeout = setTimeout(() => this.saveDraft(), 2000);
+            }
+        },
+        'company.agenda'() {
+            clearTimeout(this.saveTimeout);
+            this.saveTimeout = setTimeout(() => this.saveDraft(), 2000);
+        },
+        participants: {
+            deep: true,
+            handler() {
+                clearTimeout(this.saveTimeout);
+                this.saveTimeout = setTimeout(() => this.saveDraft(), 2000);
+            }
         }
     }
 });
