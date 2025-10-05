@@ -60,7 +60,7 @@
                         ✓ Funnet
                     </span>
                     <span v-if="lookupError && !lookupLoading" class="ml-2 text-red-600 text-sm">
-                        ✗ {{ lookupError }}
+                        ✗ @{{ lookupError }}
                     </span>
                 </label>
                 <input v-model="company.orgnr"
@@ -84,7 +84,7 @@
                        :class="errors.companyName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-blue-500'"
                        placeholder="Acme AS" required>
                 <p v-if="errors.companyName" class="mt-1 text-sm text-red-600">
-                    {{ errors.companyName }}
+                    @{{ errors.companyName }}
                 </p>
             </div>
 
@@ -112,7 +112,7 @@
                        :class="errors.meetingDate ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-blue-500'"
                        required>
                 <p v-if="errors.meetingDate" class="mt-1 text-sm text-red-600">
-                    {{ errors.meetingDate }}
+                    @{{ errors.meetingDate }}
                 </p>
             </div>
 
@@ -145,7 +145,7 @@
                            class="w-full border-2 rounded-lg px-4 py-3 focus:outline-none transition-colors"
                            :class="errors.participants[i] ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-blue-500'">
                     <p v-if="errors.participants[i]" class="mt-1 text-sm text-red-600">
-                        {{ errors.participants[i] }}
+                        @{{ errors.participants[i] }}
                     </p>
                 </div>
                 <div class="flex gap-2">
