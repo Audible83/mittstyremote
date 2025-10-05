@@ -16,7 +16,7 @@
                         <div class="h-full bg-blue-600 transition-all" :style="{width: (step / 5 * 100) + '%'}"></div>
                     </div>
                 </div>
-                <span class="text-sm text-gray-500">{{ step }}/5</span>
+                <span class="text-sm text-gray-500">@{{ step }}/5</span>
             </div>
         </div>
     </div>
@@ -122,7 +122,7 @@
                     <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"/>
                 </svg>
             </div>
-            <h1 class="text-4xl font-bold font-mono">{{ recordingTime }}</h1>
+            <h1 class="text-4xl font-bold font-mono">@{{ recordingTime }}</h1>
             <p class="text-gray-600 mt-2">Opptak pågår</p>
         </div>
 
@@ -152,9 +152,9 @@
         <p class="text-gray-600 mb-8">Generer styrenotat fra transkripsjonen</p>
 
         <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6">
-            <h3 class="font-semibold mb-3">Transkripsjon ({{ transcription.length }} tegn)</h3>
+            <h3 class="font-semibold mb-3">Transkripsjon (@{{ transcription.length }} tegn)</h3>
             <div class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
-                <pre class="text-sm whitespace-pre-wrap">{{ transcription || 'Ingen transkripsjon tilgjengelig' }}</pre>
+                <pre class="text-sm whitespace-pre-wrap">@{{ transcription || 'Ingen transkripsjon tilgjengelig' }}</pre>
             </div>
         </div>
 
