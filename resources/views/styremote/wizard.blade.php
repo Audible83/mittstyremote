@@ -3,7 +3,7 @@
 @section('title', 'Nytt Styremøte - Mitt Styremøte')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 py-4 sm:py-8" id="wizard-app" v-cloak>
+<div class="max-w-4xl mx-auto px-4 py-4 sm:py-8" id="wizard-app">
     <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
         <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">Nytt Styremøte</h1>
 
@@ -196,9 +196,7 @@
 </div>
 
 <style>
-[v-cloak] {
-    display: none;
-}
+/* Removed v-cloak to prevent hiding content */
 
 .step {
     text-align: center;

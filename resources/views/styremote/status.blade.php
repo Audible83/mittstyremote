@@ -3,7 +3,7 @@
 @section('title', 'Status - Mitt Styremøte')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 py-8" id="status-app" v-cloak>
+<div class="max-w-4xl mx-auto px-4 py-8" id="status-app">
     <div class="bg-white rounded-lg shadow-lg p-8">
         <h1 class="text-3xl font-bold mb-8 text-center">Behandler møte...</h1>
 
@@ -149,9 +149,7 @@
 </script>
 
 <style>
-[v-cloak] {
-    display: none;
-}
+/* Removed v-cloak to prevent hiding content */
 
 .step-indicator {
     display: flex;
