@@ -161,10 +161,14 @@
         <p class="text-gray-600 mb-8">Generer styrenotat fra transkripsjonen</p>
 
         <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6">
-            <h3 class="font-semibold mb-3">Transkripsjon (@{{ transcription.length }} tegn)</h3>
-            <div class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
-                <pre class="text-sm whitespace-pre-wrap">@{{ transcription || 'Ingen transkripsjon tilgjengelig' }}</pre>
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-semibold">Transkripsjon (@{{ transcription.length }} tegn)</h3>
+                <span class="text-sm text-gray-500">Rediger og fyll inn detaljer før generering</span>
             </div>
+            <textarea v-model="transcription" rows="12"
+                      class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none font-mono text-sm"
+                      placeholder="Ingen transkripsjon tilgjengelig. Du kan skrive inn notater manuelt her..."></textarea>
+            <p class="text-sm text-gray-500 mt-2">💡 Tips: Legg til detaljer om beslutninger, avstemninger, og hvem som sa hva for bedre styrenotat.</p>
         </div>
 
         <button @click="generateNotat" :disabled="generating"
