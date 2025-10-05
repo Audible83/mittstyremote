@@ -121,14 +121,21 @@ class OpenAIService
             \Log::info("Generating chat completion", [
                 'model' => $model,
                 'message_count' => count($messages),
-                'temperature' => $options['temperature'] ?? 0.3
+                'temperature' => $options['temperature'] ?? ($model === 'gpt-5-nano' ? 1 : 0.3)
             ]);
 
-            $response = $this->client->chat()->create(array_merge([
+            // GPT-5-nano only supports temperature=1, other models support 0.3
+            $requestParams = [
                 'model' => $model,
                 'messages' => $messages,
-                'temperature' => 0.3, // Lower temperature for more consistent, factual outputs
-            ], $options));
+            ];
+
+            // Only set temperature for non-gpt-5-nano models
+            if ($model !== 'gpt-5-nano') {
+                $requestParams['temperature'] = 0.3;
+            }
+
+            $response = $this->client->chat()->create(array_merge($requestParams, $options));
 
             if (!isset($response->choices[0]->message->content)) {
                 throw new \Exception("Invalid GPT API response: missing content");
