@@ -32,7 +32,7 @@
         </div>
 
         <!-- Step 1: Company -->
-        <div v-show="step === 1" class="step-content">
+        <div v-show="step === 1" class="step-content" style="border: 2px solid red;">
             <h2 class="text-2xl font-semibold mb-6">Selskapsinfo</h2>
 
             <div class="mb-4">
@@ -538,6 +538,21 @@
     const app = document.getElementById('wizard-app');
     console.log('[Wizard] v-cloak attribute present:', app.hasAttribute('v-cloak'));
     console.log('[Wizard] App element display:', window.getComputedStyle(app).display);
+
+    // Check if step content is visible
+    setTimeout(() => {
+        const stepContent = document.querySelector('.step-content');
+        if (stepContent) {
+            console.log('[Wizard] Step content found:', stepContent);
+            console.log('[Wizard] Step content display:', window.getComputedStyle(stepContent).display);
+        } else {
+            console.error('[Wizard] No .step-content element found!');
+        }
+
+        // Log all elements with v-show
+        const vShowElements = document.querySelectorAll('[v-show]');
+        console.log('[Wizard] Elements with v-show:', vShowElements.length);
+    }, 100);
 })().catch(err => {
     console.error('[Wizard] Initialization error:', err);
     alert('Failed to initialize wizard: ' + err.message);
