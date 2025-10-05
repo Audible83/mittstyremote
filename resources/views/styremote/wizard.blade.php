@@ -6,6 +6,7 @@
 <div class="max-w-4xl mx-auto px-4 py-4 sm:py-8" id="wizard-app">
     <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
         <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">Nytt Styremøte</h1>
+        <p style="background: yellow; padding: 10px;">DEBUG: Step = @{{ step }}</p>
 
         <!-- Progress Steps -->
         <div class="flex flex-wrap justify-between mb-8 sm:mb-12 gap-y-4">
@@ -286,7 +287,7 @@
         console.error('CSRF token not found');
     }
 
-    createApp({
+    const appInstance = createApp({
     data() {
         return {
             step: 1,
