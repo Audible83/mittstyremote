@@ -104,7 +104,7 @@ class OpenAIService
     /**
      * Generate chat completion using GPT
      */
-    public function chat(array $messages, string $model = 'gpt-4o-mini', array $options = []): string
+    public function chat(array $messages, string $model = 'gpt-5-nano', array $options = []): string
     {
         // Validate input
         if (empty($messages)) {
