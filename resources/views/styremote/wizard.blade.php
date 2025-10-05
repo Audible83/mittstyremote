@@ -246,8 +246,21 @@
 }
 </style>
 
-<script>
-const { createApp } = Vue;
+<script type="module">
+// Wait for app.js to load Vue globally
+await new Promise(resolve => {
+    if (window.Vue) resolve();
+    else {
+        const checkVue = setInterval(() => {
+            if (window.Vue) {
+                clearInterval(checkVue);
+                resolve();
+            }
+        }, 100);
+    }
+});
+
+const { createApp } = window.Vue;
 
 // Get CSRF token
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;

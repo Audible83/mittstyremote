@@ -66,8 +66,21 @@
     </div>
 </div>
 
-<script>
-const { createApp } = Vue;
+<script type="module">
+// Wait for Vue to be available
+await new Promise(resolve => {
+    if (window.Vue) resolve();
+    else {
+        const checkVue = setInterval(() => {
+            if (window.Vue) {
+                clearInterval(checkVue);
+                resolve();
+            }
+        }, 100);
+    }
+});
+
+const { createApp } = window.Vue;
 
 createApp({
     data() {
