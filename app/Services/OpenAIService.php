@@ -39,7 +39,7 @@ class OpenAIService
     /**
      * Transcribe audio using Whisper API
      */
-    public function transcribe(string $audioPath, string $language = 'nb'): array
+    public function transcribe(string $audioPath, string $language = 'no'): array
     {
         // Validate file
         if (!file_exists($audioPath)) {

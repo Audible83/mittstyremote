@@ -43,7 +43,7 @@ class ProcessMeetingJob implements ShouldQueue
             $this->meeting->update(['state' => 'transcribing']);
             $openAIService = app(OpenAIService::class);
 
-            $transcriptionResult = $openAIService->transcribe($audioFullPath, 'nb');
+            $transcriptionResult = $openAIService->transcribe($audioFullPath, 'no');
             $this->meeting->update([
                 'transcript' => $transcriptionResult['text'],
                 'words_json' => $transcriptionResult['words'] ?? null,

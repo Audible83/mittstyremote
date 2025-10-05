@@ -374,7 +374,7 @@ class MeetingController extends Controller
 
             // Transcribe using OpenAI Whisper
             $openAIService = app(OpenAIService::class);
-            $result = $openAIService->transcribe($fullPath, 'nb');
+            $result = $openAIService->transcribe($fullPath, 'no');
 
             // Cleanup temp file
             Storage::delete($tempPath);
@@ -389,7 +389,7 @@ class MeetingController extends Controller
 
             return response()->json([
                 'text' => $result['text'],
-                'language' => $result['language'] ?? 'nb'
+                'language' => $result['language'] ?? 'no'
             ]);
 
         } catch (\Exception $e) {
