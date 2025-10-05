@@ -29,10 +29,13 @@ export class VADRecorder {
             });
 
             // Initialize VAD with optimal settings for meeting transcription
+            // Use absolute URLs from origin to avoid relative path issues
+            const baseURL = window.location.origin;
+
             this.vad = await MicVAD.new({
                 // Model paths (absolute URLs from public directory)
-                modelURL: '/silero_vad_legacy.onnx',
-                workletURL: '/vad.worklet.bundle.min.js',
+                modelURL: `${baseURL}/silero_vad_legacy.onnx`,
+                workletURL: `${baseURL}/vad.worklet.bundle.min.js`,
 
                 // Use recommended settings from docs
                 positiveSpeechThreshold: 0.8, // Higher threshold = more confident speech detection
