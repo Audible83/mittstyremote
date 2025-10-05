@@ -160,7 +160,7 @@
 
         <button @click="generateNotat" :disabled="generating"
                 class="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 mb-4">
-            {{ generating ? '⏳ Genererer...' : '📝 Generer styrenotat' }}
+            @{{ generating ? '⏳ Genererer...' : '📝 Generer styrenotat' }}
         </button>
 
         <!-- Generated Document -->
