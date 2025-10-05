@@ -43,7 +43,7 @@ class MeetingController extends Controller
             'user_id' => auth()->id(),
             'state' => 'created',
             'retention_until' => auth()->guest()
-                ? now()->addHours(config('app.demo_retention_hours', 48))
+                ? now()->addHours((int) config('app.demo_retention_hours', 48))
                 : null,
         ]));
 
