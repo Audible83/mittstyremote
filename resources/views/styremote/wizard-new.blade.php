@@ -3,7 +3,8 @@
 @section('title', 'Nytt Styremøte - Mitt Styremøte')
 
 @section('content')
-<div id="app" class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-gray-50">
+<div id="app">
     <!-- Progress Bar -->
     <div class="bg-white border-b sticky top-0 z-50">
         <div class="max-w-4xl mx-auto px-4 py-3">
@@ -181,6 +182,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <script type="module">
