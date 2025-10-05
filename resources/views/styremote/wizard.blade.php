@@ -568,8 +568,16 @@ input:focus, select:focus, textarea:focus {
         }
     };
 
+    console.log('[Wizard] Mounting app to #wizard-app');
+    const appElement = document.getElementById('wizard-app');
+    console.log('[Wizard] Element found:', appElement);
+    console.log('[Wizard] Element content length:', appElement ? appElement.innerHTML.length : 'NOT FOUND');
+
     const app = createApp(appConfig);
-    app.mount('#wizard-app');
+    const vm = app.mount('#wizard-app');
+
+    console.log('[Wizard] Mounted! VM:', vm);
+    console.log('[Wizard] Step value:', vm.step);
 })().catch(err => {
     console.error('[Wizard] Initialization error:', err);
     alert('Failed to initialize wizard: ' + err.message);
