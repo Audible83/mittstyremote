@@ -20,8 +20,8 @@
                             'bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer': index + 1 < step,
                             'bg-gray-100 text-gray-400 cursor-not-allowed': index + 1 > step
                         }">
-                    <div class="text-xs mb-1">{{ index + 1 }}</div>
-                    <div class="text-sm">{{ stepInfo }}</div>
+                    <div class="text-xs mb-1">@{{ index + 1 }}</div>
+                    <div class="text-sm">@{{ stepInfo }}</div>
                 </button>
             </div>
 
