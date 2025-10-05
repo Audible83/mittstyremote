@@ -3,193 +3,262 @@
 @section('title', 'Nytt Styremøte - Mitt Styremøte')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 py-4 sm:py-8">
+<div class="min-h-screen bg-gray-50 pb-20 sm:pb-8">
     <div id="wizard-app">
-    <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
-        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">Nytt Styremøte</h1>
-
-        <!-- Progress Steps -->
-        <div class="flex flex-wrap justify-between mb-8 sm:mb-12 gap-y-4">
-            <div class="step" :class="{'active': step >= 1, 'complete': step > 1}">
-                <div class="step-number">1</div>
-                <div class="step-label">Selskap</div>
-            </div>
-            <div class="step" :class="{'active': step >= 2, 'complete': step > 2}">
-                <div class="step-number">2</div>
-                <div class="step-label">Møteinfo</div>
-            </div>
-            <div class="step" :class="{'active': step >= 3, 'complete': step > 3}">
-                <div class="step-number">3</div>
-                <div class="step-label">Deltakere</div>
-            </div>
-            <div class="step" :class="{'active': step >= 4, 'complete': step > 4}">
-                <div class="step-number">4</div>
-                <div class="step-label">Samtykke</div>
-            </div>
-            <div class="step" :class="{'active': step >= 5}">
-                <div class="step-number">5</div>
-                <div class="step-label">Opptak</div>
+    <!-- Apple-style progress indicator -->
+    <div class="bg-white border-b sticky top-0 z-10">
+        <div class="max-w-3xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <button v-if="step > 1 && step < 5" @click="prevStep" class="text-blue-600 font-medium">
+                    ← Tilbake
+                </button>
+                <div v-else class="w-20"></div>
+                <div class="flex-1 mx-4">
+                    <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-600 transition-all duration-300" :style="{width: (step / 5 * 100) + '%'}"></div>
+                    </div>
+                </div>
+                <span class="text-sm text-gray-500">@{{ step }}/5</span>
             </div>
         </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto px-4 py-6">
 
         <!-- Step 1: Company -->
         <div v-show="step === 1" class="step-content">
-            <h2 class="text-2xl font-semibold mb-6">Selskapsinfo</h2>
+            <h1 class="text-3xl font-bold mb-2">Hvilket selskap?</h1>
+            <p class="text-gray-600 mb-8">Søk eller skriv inn selskapsinfo manuelt</p>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Org.nr. (9 siffer)</label>
-                <div class="flex gap-2">
-                    <input v-model="company.orgnr" type="text" maxlength="9" class="flex-1 border rounded px-3 py-2" placeholder="123456789">
-                    <button @click="lookupCompany" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Slå opp</button>
+            <div class="space-y-4 mb-8">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Org.nr. (valgfritt)</label>
+                    <div class="flex gap-2">
+                        <input v-model="company.orgnr" type="text" maxlength="9"
+                               class="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-0 transition-colors"
+                               placeholder="123456789">
+                        <button @click="lookupCompany"
+                                class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 active:bg-blue-800 font-medium transition-colors whitespace-nowrap">
+                            Søk
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Selskapsnavn *</label>
+                    <input v-model="company.name" type="text"
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-0 transition-colors"
+                           placeholder="Acme AS" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Adresse (valgfritt)</label>
+                    <input v-model="company.address" type="text"
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-0 transition-colors"
+                           placeholder="Storgata 1, 0123 Oslo">
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Selskapsnavn</label>
-                <input v-model="company.name" type="text" class="w-full border rounded px-3 py-2" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Adresse</label>
-                <input v-model="company.address" type="text" class="w-full border rounded px-3 py-2">
-            </div>
-
-            <button @click="nextStep" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold min-h-[44px]">Neste</button>
+            <button @click="nextStep"
+                    class="w-full bg-blue-600 text-white px-6 py-4 rounded-xl hover:bg-blue-700 active:bg-blue-800 font-semibold text-lg transition-colors">
+                Fortsett
+            </button>
         </div>
 
         <!-- Step 2: Meeting Info -->
         <div v-show="step === 2" class="step-content">
-            <h2 class="text-2xl font-semibold mb-6">Møteinformasjon</h2>
+            <h1 class="text-3xl font-bold mb-2">Møtedetaljer</h1>
+            <p class="text-gray-600 mb-8">Når og hvor skal møtet holdes?</p>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Møtedato og klokkeslett</label>
-                <input v-model="meeting.datetime" type="datetime-local" class="w-full border rounded px-3 py-2" required>
+            <div class="space-y-4 mb-8">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Dato og tid *</label>
+                    <input v-model="meeting.datetime" type="datetime-local"
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-0 transition-colors"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Møtested *</label>
+                    <input v-model="meeting.location" type="text"
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-0 transition-colors"
+                           placeholder="Kontoret / Teams / Zoom" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Møteleder *</label>
+                    <input v-model="meeting.chair" type="text"
+                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-0 transition-colors"
+                           placeholder="Navn på møteleder" required>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input v-model="meeting.quorum" type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        <div>
+                            <span class="font-medium">Møtet er beslutningsdyktig</span>
+                            <p class="text-sm text-gray-600 mt-1">Det er quorum for å fatte vedtak</p>
+                        </div>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Saksliste (valgfritt)</label>
+                    <textarea v-model="meeting.agenda" rows="4"
+                              class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-blue-500 focus:ring-0 transition-colors"
+                              placeholder="Sak 1: Godkjenning av årsregnskap&#10;Sak 2: Valg av revisor"></textarea>
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Møtested</label>
-                <input v-model="meeting.location" type="text" class="w-full border rounded px-3 py-2" placeholder="Selskapets adresse / Teams / Zoom" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Møteleder (styreleder)</label>
-                <input v-model="meeting.chair" type="text" class="w-full border rounded px-3 py-2" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="flex items-center">
-                    <input v-model="meeting.quorum" type="checkbox" class="mr-2">
-                    <span>Møtet er beslutningsdyktig (quorum)</span>
-                </label>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Saksliste (valgfritt)</label>
-                <textarea v-model="meeting.agenda" rows="4" class="w-full border rounded px-3 py-2" placeholder="Sak 1: Godkjenning av årsregnskap&#10;Sak 2: Valg av revisor&#10;..."></textarea>
-            </div>
-
-            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <button @click="prevStep" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 min-h-[44px]">Tilbake</button>
-                <button @click="nextStep" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold min-h-[44px]">Neste</button>
-            </div>
+            <button @click="nextStep"
+                    class="w-full bg-blue-600 text-white px-6 py-4 rounded-xl hover:bg-blue-700 active:bg-blue-800 font-semibold text-lg transition-colors">
+                Fortsett
+            </button>
         </div>
 
         <!-- Step 3: Participants -->
         <div v-show="step === 3" class="step-content">
-            <h2 class="text-2xl font-semibold mb-6">Deltakere</h2>
+            <h1 class="text-3xl font-bold mb-2">Hvem deltar?</h1>
+            <p class="text-gray-600 mb-8">Legg til alle møtedeltakere</p>
 
-            <div v-for="(p, index) in participants" :key="index" class="mb-4 p-3 sm:p-4 border rounded">
-                <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-2">
-                    <input v-model="p.name" type="text" class="flex-1 border rounded px-3 py-2 min-h-[44px]" placeholder="Navn" required>
-                    <select v-model="p.role" class="border rounded px-3 py-2 min-h-[44px]">
-                        <option value="styreleder">Styreleder</option>
-                        <option value="styremedlem">Styremedlem</option>
-                        <option value="varamedlem">Varamedlem</option>
-                        <option value="daglig_leder">Daglig leder</option>
-                        <option value="observator">Observatør</option>
-                    </select>
-                    <button @click="removeParticipant(index)" class="text-red-600 hover:text-red-800 px-3 py-2 sm:px-0 min-h-[44px]">Fjern</button>
+            <div class="space-y-3 mb-6">
+                <div v-for="(p, index) in participants" :key="index" class="bg-white border-2 border-gray-200 rounded-xl p-4">
+                    <div class="space-y-3">
+                        <input v-model="p.name" type="text"
+                               class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-base focus:border-blue-500 focus:ring-0 transition-colors"
+                               placeholder="Navn" required>
+
+                        <div class="flex gap-2">
+                            <select v-model="p.role"
+                                    class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-3 text-base focus:border-blue-500 focus:ring-0 transition-colors">
+                                <option value="styreleder">Styreleder</option>
+                                <option value="styremedlem">Styremedlem</option>
+                                <option value="varamedlem">Varamedlem</option>
+                                <option value="daglig_leder">Daglig leder</option>
+                                <option value="observator">Observatør</option>
+                            </select>
+
+                            <button v-if="participants.length > 1" @click="removeParticipant(index)"
+                                    class="px-4 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input v-model="p.present" type="checkbox" class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                            <span class="text-sm text-gray-700">Tilstede på møtet</span>
+                        </label>
+                    </div>
                 </div>
-                <label class="flex items-center text-sm min-h-[44px]">
-                    <input v-model="p.present" type="checkbox" class="mr-2 w-5 h-5">
-                    Tilstede
-                </label>
             </div>
 
-            <button @click="addParticipant" class="w-full mb-6 bg-green-600 text-white px-4 py-3 rounded hover:bg-green-700 min-h-[44px]">+ Legg til deltaker</button>
+            <button @click="addParticipant"
+                    class="w-full mb-8 border-2 border-dashed border-gray-300 text-gray-600 px-6 py-4 rounded-xl hover:border-blue-500 hover:text-blue-600 font-medium transition-colors">
+                + Legg til deltaker
+            </button>
 
-            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <button @click="prevStep" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 min-h-[44px]">Tilbake</button>
-                <button @click="nextStep" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold min-h-[44px]">Neste</button>
-            </div>
+            <button @click="nextStep"
+                    class="w-full bg-blue-600 text-white px-6 py-4 rounded-xl hover:bg-blue-700 active:bg-blue-800 font-semibold text-lg transition-colors">
+                Fortsett
+            </button>
         </div>
 
         <!-- Step 4: Consent -->
         <div v-show="step === 4" class="step-content">
-            <h2 class="text-2xl font-semibold mb-6">Samtykke til opptak</h2>
+            <h1 class="text-3xl font-bold mb-2">Samtykke</h1>
+            <p class="text-gray-600 mb-8">Før vi starter opptaket</p>
 
-            <div class="bg-yellow-50 border border-yellow-200 rounded p-6 mb-6">
-                <h3 class="font-semibold mb-2">Viktig informasjon om personvern</h3>
-                <p class="text-sm mb-4">
-                    Ved å ta opp møtet samles det inn lydopptak, transkripsjon og annen informasjon som behandles av AI-tjenester (OpenAI Whisper og GPT).
-                </p>
-                <ul class="text-sm list-disc list-inside space-y-1 mb-4">
-                    <li>Alle deltakere må samtykke til opptak</li>
-                    <li>Opptaket lagres kryptert</li>
-                    <li>Demo-opptak slettes automatisk etter 48 timer</li>
-                    <li>Du kan slette opptaket når som helst</li>
-                </ul>
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
+                <div class="flex gap-3 mb-4">
+                    <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <h3 class="font-semibold text-blue-900 mb-2">Personvern og AI-behandling</h3>
+                        <p class="text-sm text-blue-800 mb-3">
+                            Lydopptak behandles av OpenAI (Whisper og GPT) for transkripsjon og sammendrag.
+                        </p>
+                        <ul class="text-sm text-blue-800 space-y-2">
+                            <li class="flex gap-2">
+                                <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                Alle deltakere må samtykke
+                            </li>
+                            <li class="flex gap-2">
+                                <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                Demo slettes etter 48 timer
+                            </li>
+                            <li class="flex gap-2">
+                                <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                Kryptert lagring
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
-            <label class="flex items-start mb-6">
-                <input v-model="consent" type="checkbox" class="mr-3 mt-1" required>
-                <span class="text-sm">
-                    Jeg bekrefter at alle deltakere har samtykket til opptak og behandling av møtedata i henhold til personvernreglene.
+            <label class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer mb-8 border-2 transition-colors" :class="consent ? 'border-blue-500 bg-blue-50' : 'border-gray-200'">
+                <input v-model="consent" type="checkbox" class="mt-0.5 w-6 h-6 text-blue-600 rounded border-gray-300 focus:ring-blue-500" required>
+                <span class="text-sm leading-relaxed">
+                    Jeg bekrefter at <strong>alle deltakere har samtykket</strong> til opptak og AI-behandling av møtedata.
                 </span>
             </label>
 
-            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <button @click="prevStep" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 min-h-[44px]">Tilbake</button>
-                <button @click="startRecording" :disabled="!consent" class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]">
-                    Start opptak
-                </button>
-            </div>
+            <button @click="startRecording" :disabled="!consent"
+                    class="w-full bg-red-600 text-white px-6 py-4 rounded-xl hover:bg-red-700 active:bg-red-800 font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600">
+                🎙️ Start opptak
+            </button>
         </div>
 
         <!-- Step 5: Recording -->
-        <div v-show="step === 5" class="step-content">
-            <h2 class="text-2xl font-semibold mb-6 text-center">Opptak pågår</h2>
+        <div v-show="step === 5" class="step-content text-center">
+            <div class="mb-8">
+                <div class="inline-flex items-center justify-center w-24 h-24 bg-red-600 rounded-full mb-6 animate-pulse">
+                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" />
+                    </svg>
+                </div>
 
-            <div class="text-center mb-8">
-                <div class="inline-block bg-red-600 text-white px-8 py-4 rounded-full text-4xl font-mono">
-                    @{{ recordingTime }}
-                </div>
-                <div class="mt-4" v-if="speechDetected">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                        <span class="w-2 h-2 bg-green-600 rounded-full mr-2 animate-pulse"></span>
-                        Tale detektert
-                    </span>
-                </div>
-                <div class="mt-4" v-else>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600">
-                        Venter på tale...
-                    </span>
-                </div>
+                <h1 class="text-4xl font-bold mb-2 font-mono tabular-nums">@{{ recordingTime }}</h1>
+                <p class="text-gray-600">Opptak pågår</p>
             </div>
 
             <div class="mb-8">
-                <div class="bg-gray-200 rounded-full h-2">
-                    <div class="bg-red-600 h-2 rounded-full transition-all duration-300" :style="{width: uploadProgress + '%'}"></div>
+                <div v-if="speechDetected" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-800">
+                    <span class="w-3 h-3 bg-green-600 rounded-full animate-pulse"></span>
+                    <span class="font-medium">Tale detektert</span>
                 </div>
-                <p class="text-sm text-gray-600 text-center mt-2">Chunks lastet opp: @{{ chunkSeq }}</p>
+                <div v-else class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-600">
+                    <span class="w-3 h-3 bg-gray-400 rounded-full"></span>
+                    <span>Venter på tale...</span>
+                </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-3">
-                <button @click="cancelRecording" class="flex-1 bg-yellow-600 text-white px-6 py-4 rounded-lg hover:bg-yellow-700 font-semibold text-base sm:text-lg min-h-[44px]">
-                    🚫 Avbryt
+            <div class="bg-gray-100 rounded-2xl p-6 mb-8">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-gray-600">Opplasting</span>
+                    <span class="text-sm font-medium">@{{ chunkSeq }} lydklipp</span>
+                </div>
+                <div class="bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" :style="{width: Math.min(uploadProgress, 100) + '%'}"></div>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <button @click="stopRecording"
+                        class="w-full bg-gray-900 text-white px-6 py-4 rounded-xl hover:bg-gray-800 active:bg-black font-semibold text-lg transition-colors">
+                    ⏹ Stopp opptak
                 </button>
-                <button @click="stopRecording" class="flex-1 bg-gray-800 text-white px-6 py-4 rounded-lg hover:bg-gray-900 font-semibold text-base sm:text-lg min-h-[44px]">
-                    ⏹️ Stopp opptak
+                <button @click="cancelRecording"
+                        class="w-full bg-white border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 font-medium transition-colors">
+                    Avbryt
                 </button>
             </div>
         </div>
@@ -198,55 +267,29 @@
 </div>
 
 <style>
-/* Removed v-cloak to prevent hiding content */
+/* Apple-esque smooth transitions */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
 
-.step {
-    text-align: center;
-    flex: 1 1 auto;
-    position: relative;
-    min-width: 60px;
+input:focus, select:focus, textarea:focus {
+    outline: none;
 }
-.step-number {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #e5e7eb;
-    color: #6b7280;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 6px;
-    font-weight: bold;
-    font-size: 0.875rem;
+
+/* Smooth page transitions */
+.step-content {
+    animation: fadeIn 0.3s ease-in-out;
 }
-@media (min-width: 640px) {
-    .step-number {
-        width: 40px;
-        height: 40px;
-        margin-bottom: 8px;
-        font-size: 1rem;
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
     }
-}
-.step.active .step-number {
-    background: #2563eb;
-    color: white;
-}
-.step.complete .step-number {
-    background: #10b981;
-    color: white;
-}
-.step-label {
-    font-size: 0.75rem;
-    color: #6b7280;
-}
-@media (min-width: 640px) {
-    .step-label {
-        font-size: 0.875rem;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
-}
-.step.active .step-label {
-    color: #2563eb;
-    font-weight: 600;
 }
 </style>
 
