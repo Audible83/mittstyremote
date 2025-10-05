@@ -186,12 +186,17 @@
 <script type="module">
 // Wait for Vue to load
 (async () => {
+    console.log('[Wizard] Starting...');
+
     await new Promise(resolve => {
         if (window.Vue) {
+            console.log('[Wizard] Vue already available');
             resolve();
         } else {
+            console.log('[Wizard] Waiting for Vue...');
             const checkVue = setInterval(() => {
                 if (window.Vue) {
+                    console.log('[Wizard] Vue loaded');
                     clearInterval(checkVue);
                     resolve();
                 }
@@ -199,9 +204,11 @@
         }
     });
 
+    console.log('[Wizard] Creating app...');
     const { createApp } = window.Vue;
+    console.log('[Wizard] createApp:', createApp);
 
-createApp({
+const app = createApp({
     data() {
         return {
             step: 1,
@@ -328,7 +335,14 @@ createApp({
             alert('Del-funksjon kommer snart');
         }
     }
-}).mount('#app');
+});
+
+console.log('[Wizard] Mounting to #app...');
+const appElement = document.getElementById('app');
+console.log('[Wizard] App element found:', appElement);
+
+const vm = app.mount('#app');
+console.log('[Wizard] Mounted successfully! VM:', vm);
 
 })().catch(err => {
     console.error('Failed to initialize:', err);
