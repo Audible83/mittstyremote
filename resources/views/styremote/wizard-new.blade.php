@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
-<h1 style="color: red; padding: 20px;">TEST - If you see this, HTML is rendering</h1>
+<div id="app-wrapper">
 <div id="app">
     <!-- Progress Bar -->
     <div class="bg-white border-b sticky top-0 z-50">
@@ -185,6 +185,7 @@
     </div>
 </div>
 </div>
+</div>
 
 <script type="module">
 // Wait for Vue to load
@@ -211,16 +212,7 @@
     const { createApp } = window.Vue;
     console.log('[Wizard] createApp:', createApp);
 
-    // Store the template content before creating app
-    const appElement = document.getElementById('app');
-    const templateContent = appElement.innerHTML;
-    console.log('[Wizard] Template length:', templateContent.length);
-
-    // Clear the element
-    appElement.innerHTML = '';
-
 const app = createApp({
-    template: templateContent,
     data() {
         return {
             step: 1,
@@ -350,9 +342,7 @@ const app = createApp({
 });
 
 console.log('[Wizard] Mounting to #app...');
-console.log('[Wizard] App element found:', appElement);
-
-const vm = app.mount(appElement);
+const vm = app.mount('#app');
 console.log('[Wizard] Mounted successfully! VM:', vm);
 
 })().catch(err => {

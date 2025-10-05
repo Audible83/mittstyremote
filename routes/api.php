@@ -34,6 +34,14 @@ Route::get('/meetings/{meeting}/status', [MeetingController::class, 'status'])
 Route::get('/meetings/{meeting}/download/{type}', [MeetingController::class, 'download'])
     ->middleware('throttle:30,1');
 
+// Live transcription - high limit for real-time chunks
+Route::post('/meetings/{meeting}/transcribe-chunk', [MeetingController::class, 'transcribeChunk'])
+    ->middleware('throttle:60,1'); // 60 requests per minute for live transcription
+
+// Generate styrenotat
+Route::post('/meetings/{meeting}/generate-notat', [MeetingController::class, 'generateNotat'])
+    ->middleware('throttle:5,1');
+
 // Sharing - strict rate limiting
 Route::post('/meetings/{meeting}/share', [ShareController::class, 'create'])
     ->middleware('throttle:10,1');

@@ -7,6 +7,7 @@ use App\Models\Meeting;
 use App\Models\Participant;
 use App\Models\AuditLog;
 use App\Jobs\ProcessMeetingJob;
+use App\Services\OpenAIService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -305,8 +306,13 @@ class MeetingController extends Controller
 
     public function download(Meeting $meeting, string $type)
     {
-        if (!in_array($type, ['minutes', 'actions', 'decisions'])) {
+        if (!in_array($type, ['minutes', 'actions', 'decisions', 'pdf'])) {
             return response()->json(['error' => 'Invalid type'], 400);
+        }
+
+        // Handle 'pdf' type as alias for 'minutes'
+        if ($type === 'pdf') {
+            $type = 'minutes';
         }
 
         $pathField = "pdf_{$type}_path";
@@ -321,5 +327,164 @@ class MeetingController extends Controller
         AuditLog::log("download.{$type}", $meeting->id);
 
         return Storage::download($path, $filename);
+    }
+
+    /**
+     * Transcribe audio chunk for live transcription
+     */
+    public function transcribeChunk(Request $request, Meeting $meeting)
+    {
+        $request->validate([
+            'audio' => 'required|file|max:10240|mimes:webm,ogg,mp4,wav,mp3',
+        ]);
+
+        try {
+            $audioFile = $request->file('audio');
+
+            // Save chunk temporarily
+            $tempPath = $audioFile->storeAs(
+                "audio/temp/{$meeting->id}",
+                'chunk_' . now()->timestamp . '.' . $audioFile->getClientOriginalExtension()
+            );
+
+            $fullPath = Storage::path($tempPath);
+
+            // Transcribe using OpenAI Whisper
+            $openAIService = app(OpenAIService::class);
+            $result = $openAIService->transcribe($fullPath, 'nb');
+
+            // Cleanup temp file
+            Storage::delete($tempPath);
+
+            // Append to meeting transcript
+            $currentTranscript = $meeting->transcript ?? '';
+            $meeting->update([
+                'transcript' => $currentTranscript . ' ' . $result['text']
+            ]);
+
+            AuditLog::log('transcription.chunk', $meeting->id);
+
+            return response()->json([
+                'text' => $result['text'],
+                'language' => $result['language'] ?? 'nb'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error("Chunk transcription failed for meeting {$meeting->id}: " . $e->getMessage());
+            return response()->json([
+                'error' => 'Transcription failed',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate styrenotat from transcription
+     */
+    public function generateNotat(Request $request, Meeting $meeting)
+    {
+        $validated = $request->validate([
+            'transcription' => 'required|string|min:10',
+            'company' => 'required|array',
+            'company.name' => 'required|string',
+            'company.orgnr' => 'nullable|string',
+            'company.meetingDate' => 'required|string',
+            'participants' => 'required|array|min:1',
+            'participants.*.name' => 'required|string',
+            'participants.*.role' => 'required|string',
+        ]);
+
+        try {
+            // Update meeting with final transcription
+            $meeting->update([
+                'transcript' => $validated['transcription'],
+                'state' => 'summarizing'
+            ]);
+
+            // Prepare meeting data for generation
+            $meetingData = [
+                'company_name' => $validated['company']['name'],
+                'company_orgnr' => $validated['company']['orgnr'] ?? '',
+                'company_address' => '',
+                'meeting_datetime' => $validated['company']['meetingDate'],
+                'meeting_location' => 'Digitalt møte',
+                'chair_name' => $validated['participants'][0]['name'] ?? 'Ikke spesifisert',
+                'quorum_ok' => true,
+                'agenda_text' => '',
+                'participants' => array_map(function($p) {
+                    return [
+                        'name' => $p['name'],
+                        'role' => $p['role'],
+                        'is_present' => true
+                    ];
+                }, $validated['participants']),
+            ];
+
+            // Generate styrenotat using OpenAI
+            $openAIService = app(OpenAIService::class);
+            $minutes = $openAIService->generateMinutes(
+                $meetingData,
+                $validated['transcription'],
+                []
+            );
+
+            // Convert markdown to HTML (simple conversion)
+            $html = $this->markdownToHtml($minutes);
+
+            // Update meeting with generated content
+            $meeting->update([
+                'minutes_content' => $minutes,
+                'state' => 'ready'
+            ]);
+
+            AuditLog::log('notat.generated', $meeting->id);
+
+            return response()->json([
+                'html' => $html,
+                'markdown' => $minutes
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error("Notat generation failed for meeting {$meeting->id}: " . $e->getMessage());
+            $meeting->update(['state' => 'failed']);
+
+            return response()->json([
+                'error' => 'Generation failed',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Simple markdown to HTML converter
+     */
+    private function markdownToHtml(string $markdown): string
+    {
+        // Basic markdown conversion
+        $html = $markdown;
+
+        // Headers
+        $html = preg_replace('/^# (.+)$/m', '<h1>$1</h1>', $html);
+        $html = preg_replace('/^## (.+)$/m', '<h2>$1</h2>', $html);
+        $html = preg_replace('/^### (.+)$/m', '<h3>$1</h3>', $html);
+
+        // Bold
+        $html = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $html);
+
+        // Italic
+        $html = preg_replace('/\*(.+?)\*/', '<em>$1</em>', $html);
+
+        // Lists
+        $html = preg_replace('/^- (.+)$/m', '<li>$1</li>', $html);
+        $html = preg_replace('/(<li>.*<\/li>)/s', '<ul>$1</ul>', $html);
+
+        // Paragraphs
+        $html = preg_replace('/\n\n/', '</p><p>', $html);
+        $html = '<p>' . $html . '</p>';
+
+        // Line breaks
+        $html = preg_replace('/\n/', '<br>', $html);
+
+        return $html;
     }
 }
