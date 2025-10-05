@@ -3,7 +3,8 @@
 @section('title', 'Nytt Styremøte - Mitt Styremøte')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 py-4 sm:py-8" id="wizard-app">
+<div class="max-w-4xl mx-auto px-4 py-4 sm:py-8">
+    <div id="wizard-app">
     <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
         <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">Nytt Styremøte</h1>
         <p style="background: yellow; padding: 10px;">DEBUG: Step = @{{ step }}</p>
@@ -194,6 +195,7 @@
             </div>
         </div>
     </div>
+    </div>
 </div>
 
 <style>
@@ -287,7 +289,7 @@
         console.error('CSRF token not found');
     }
 
-    const appInstance = createApp({
+    const appConfig = {
     data() {
         return {
             step: 1,
@@ -530,15 +532,21 @@
                 console.error('Upload failed:', error);
             }
         }
-    }
-    }).mount('#wizard-app');
+    };
 
+    console.log('[Wizard] Creating app with config:', appConfig);
+    const app = createApp(appConfig);
+    console.log('[Wizard] App created, mounting to #wizard-app');
+    const vm = app.mount('#wizard-app');
     console.log('[Wizard] Vue app mounted successfully');
+    console.log('[Wizard] Vue instance:', vm);
+    console.log('[Wizard] Vue instance step:', vm.step);
 
     // Debug: Log if v-cloak was removed
-    const app = document.getElementById('wizard-app');
-    console.log('[Wizard] v-cloak attribute present:', app.hasAttribute('v-cloak'));
-    console.log('[Wizard] App element display:', window.getComputedStyle(app).display);
+    const appElement = document.getElementById('wizard-app');
+    console.log('[Wizard] v-cloak attribute present:', appElement.hasAttribute('v-cloak'));
+    console.log('[Wizard] App element display:', window.getComputedStyle(appElement).display);
+    console.log('[Wizard] App element innerHTML length:', appElement.innerHTML.length);
 
     // Check if step content is visible
     setTimeout(() => {
