@@ -535,6 +535,11 @@
     }).mount('#wizard-app');
 
     console.log('[Wizard] Vue app mounted successfully');
+
+    // Debug: Log if v-cloak was removed
+    const app = document.getElementById('wizard-app');
+    console.log('[Wizard] v-cloak attribute present:', app.hasAttribute('v-cloak'));
+    console.log('[Wizard] App element display:', window.getComputedStyle(app).display);
 })().catch(err => {
     console.error('[Wizard] Initialization error:', err);
     alert('Failed to initialize wizard: ' + err.message);
