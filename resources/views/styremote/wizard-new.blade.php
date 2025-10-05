@@ -69,6 +69,23 @@
 
             <div>
                 <label class="block text-sm font-medium mb-2">Møtedato *</label>
+
+                <!-- Quick Date Selection (especially useful on mobile) -->
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    <button type="button" @click="setQuickDate('now')"
+                            class="px-3 py-2 text-sm border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                        🕐 Nå
+                    </button>
+                    <button type="button" @click="setQuickDate('today_14')"
+                            class="px-3 py-2 text-sm border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                        📅 I dag 14:00
+                    </button>
+                    <button type="button" @click="setQuickDate('tomorrow_14')"
+                            class="px-3 py-2 text-sm border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                        📅 I morgen 14:00
+                    </button>
+                </div>
+
                 <input v-model="company.meetingDate" type="datetime-local"
                        class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
                        required>
@@ -296,6 +313,39 @@ const app = createApp({
                 return;
             }
             this.step++;
+        },
+        setQuickDate(type) {
+            const now = new Date();
+
+            switch(type) {
+                case 'now':
+                    // Current time, rounded to nearest 15 minutes
+                    const minutes = Math.round(now.getMinutes() / 15) * 15;
+                    now.setMinutes(minutes);
+                    now.setSeconds(0);
+                    break;
+
+                case 'today_14':
+                    // Today at 14:00
+                    now.setHours(14, 0, 0, 0);
+                    break;
+
+                case 'tomorrow_14':
+                    // Tomorrow at 14:00
+                    now.setDate(now.getDate() + 1);
+                    now.setHours(14, 0, 0, 0);
+                    break;
+            }
+
+            // Format for datetime-local input: YYYY-MM-DDTHH:mm
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+
+            this.company.meetingDate = `${year}-${month}-${day}T${hours}:${mins}`;
+            console.log('[QuickDate] Set to:', this.company.meetingDate);
         },
         onOrgnrInput(event) {
             const orgnr = event.target.value;
