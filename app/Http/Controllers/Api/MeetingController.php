@@ -365,9 +365,11 @@ class MeetingController extends Controller
             $audioFile = $request->file('audio');
 
             // Save chunk temporarily
+            // Use .wav extension since VAD always sends WAV format
+            $extension = $audioFile->getClientOriginalExtension() ?: 'wav';
             $tempPath = $audioFile->storeAs(
                 "audio/temp/{$meeting->id}",
-                'chunk_' . now()->timestamp . '.' . $audioFile->getClientOriginalExtension()
+                'chunk_' . now()->timestamp . '.' . $extension
             );
 
             $fullPath = Storage::path($tempPath);
