@@ -534,6 +534,11 @@
         }
     };
 
+    // Get the template before Vue mounts
+    const appElement = document.getElementById('wizard-app');
+    console.log('[Wizard] Template HTML length before mount:', appElement.innerHTML.length);
+    console.log('[Wizard] Template HTML preview:', appElement.innerHTML.substring(0, 200));
+
     console.log('[Wizard] Creating app with config:', appConfig);
     const app = createApp(appConfig);
     console.log('[Wizard] App created, mounting to #wizard-app');
