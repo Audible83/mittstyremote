@@ -21,6 +21,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/images/icon-192.png">
 
     <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/images/icon-512.png">
 
