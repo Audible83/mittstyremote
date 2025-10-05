@@ -63,8 +63,12 @@
             <div>
                 <label class="block text-sm font-medium mb-2">Selskapsnavn *</label>
                 <input v-model="company.name" type="text"
-                       class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
+                       class="w-full border-2 rounded-xl px-4 py-3 focus:outline-none transition-colors"
+                       :class="errors.companyName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-blue-500'"
                        placeholder="Acme AS" required>
+                <p v-if="errors.companyName" class="mt-1 text-sm text-red-600">
+                    {{ errors.companyName }}
+                </p>
             </div>
 
             <div>
@@ -87,8 +91,12 @@
                 </div>
 
                 <input v-model="company.meetingDate" type="datetime-local"
-                       class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
+                       class="w-full border-2 rounded-xl px-4 py-3 focus:outline-none transition-colors"
+                       :class="errors.meetingDate ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-blue-500'"
                        required>
+                <p v-if="errors.meetingDate" class="mt-1 text-sm text-red-600">
+                    {{ errors.meetingDate }}
+                </p>
             </div>
 
             <div>
@@ -114,8 +122,14 @@
 
         <div class="space-y-3 mb-6">
             <div v-for="(p, i) in participants" :key="i" class="border-2 border-gray-200 rounded-xl p-4">
-                <input v-model="p.name" type="text" placeholder="Navn"
-                       class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 mb-3 focus:border-blue-500 focus:outline-none">
+                <div class="mb-3">
+                    <input v-model="p.name" type="text" placeholder="Navn"
+                           class="w-full border-2 rounded-lg px-4 py-3 focus:outline-none transition-colors"
+                           :class="errors.participants[i] ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-blue-500'">
+                    <p v-if="errors.participants[i]" class="mt-1 text-sm text-red-600">
+                        {{ errors.participants[i] }}
+                    </p>
+                </div>
                 <div class="flex gap-2">
                     <select v-model="p.role" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none">
                         <option value="styreleder">Styreleder</option>
@@ -303,15 +317,62 @@ const app = createApp({
             lookupLoading: false,
             lookupSuccess: false,
             lookupError: null,
-            lookupTimeout: null
+            lookupTimeout: null,
+            // Form validation
+            errors: {
+                companyName: '',
+                meetingDate: '',
+                participants: []
+            }
         };
     },
     methods: {
+        validateStep1() {
+            this.errors.companyName = '';
+            this.errors.meetingDate = '';
+            let isValid = true;
+
+            if (!this.company.name || this.company.name.trim() === '') {
+                this.errors.companyName = 'Selskapsnavn er påkrevet';
+                isValid = false;
+            }
+
+            if (!this.company.meetingDate) {
+                this.errors.meetingDate = 'Møtedato er påkrevet';
+                isValid = false;
+            }
+
+            return isValid;
+        },
+        validateStep2() {
+            this.errors.participants = [];
+            let isValid = true;
+
+            this.participants.forEach((p, index) => {
+                if (!p.name || p.name.trim() === '') {
+                    this.errors.participants[index] = 'Navn er påkrevet';
+                    isValid = false;
+                } else {
+                    this.errors.participants[index] = '';
+                }
+            });
+
+            return isValid;
+        },
         nextStep() {
-            if (this.step === 1 && (!this.company.name || !this.company.meetingDate)) {
-                alert('Fyll inn påkrevde felt');
+            // Validate current step
+            if (this.step === 1 && !this.validateStep1()) {
                 return;
             }
+
+            if (this.step === 2 && !this.validateStep2()) {
+                return;
+            }
+
+            // Clear errors and proceed
+            this.errors.companyName = '';
+            this.errors.meetingDate = '';
+            this.errors.participants = [];
             this.step++;
         },
         setQuickDate(type) {
