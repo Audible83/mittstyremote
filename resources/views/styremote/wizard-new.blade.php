@@ -49,6 +49,13 @@
                        class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
                        required>
             </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-2">Møteprogram / Agenda (valgfritt)</label>
+                <textarea v-model="company.agenda" rows="6"
+                          class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
+                          placeholder="Skriv inn saksliste eller lim inn møteprogrammet her...&#10;&#10;Eksempel:&#10;Sak 1: Godkjenning av innkalling&#10;Sak 2: Godkjenning av referat fra forrige møte&#10;Sak 3: Årsregnskap og årsberetning&#10;Sak 4: Eventuelt"></textarea>
+            </div>
         </div>
 
         <button @click="nextStep" :disabled="!company.name || !company.meetingDate"
@@ -228,7 +235,8 @@ const app = createApp({
             company: {
                 orgnr: '',
                 name: '',
-                meetingDate: ''
+                meetingDate: '',
+                agenda: ''
             },
             participants: [
                 { name: '', role: 'styreleder' }
@@ -268,6 +276,7 @@ const app = createApp({
                     company_name: this.company.name,
                     company_orgnr: this.company.orgnr,
                     meeting_datetime: this.company.meetingDate,
+                    agenda_text: this.company.agenda,
                     participants: this.participants
                 })
             });
