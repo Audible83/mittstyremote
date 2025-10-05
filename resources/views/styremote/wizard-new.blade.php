@@ -212,7 +212,16 @@
     const { createApp } = window.Vue;
     console.log('[Wizard] createApp:', createApp);
 
+    // Extract template before mounting (critical for Vue 3)
+    const appElement = document.getElementById('app');
+    const templateHTML = appElement.innerHTML;
+    console.log('[Wizard] Template extracted:', templateHTML.length, 'chars');
+
+    // Clear the element so Vue can mount cleanly
+    appElement.innerHTML = '';
+
 const app = createApp({
+    template: templateHTML,
     data() {
         return {
             step: 1,
@@ -342,7 +351,7 @@ const app = createApp({
 });
 
 console.log('[Wizard] Mounting to #app...');
-const vm = app.mount('#app');
+const vm = app.mount(appElement);
 console.log('[Wizard] Mounted successfully! VM:', vm);
 
 })().catch(err => {
