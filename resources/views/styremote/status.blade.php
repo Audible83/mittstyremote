@@ -68,21 +68,23 @@
 
 <script type="module">
 // Wait for Vue to be available
-await new Promise(resolve => {
-    if (window.Vue) resolve();
-    else {
-        const checkVue = setInterval(() => {
-            if (window.Vue) {
-                clearInterval(checkVue);
-                resolve();
-            }
-        }, 100);
-    }
-});
+(async () => {
+    await new Promise(resolve => {
+        if (window.Vue) {
+            resolve();
+        } else {
+            const checkVue = setInterval(() => {
+                if (window.Vue) {
+                    clearInterval(checkVue);
+                    resolve();
+                }
+            }, 100);
+        }
+    });
 
-const { createApp } = window.Vue;
+    const { createApp } = window.Vue;
 
-createApp({
+    createApp({
     data() {
         return {
             meetingId: {!! json_encode($meetingId) !!},
@@ -142,7 +144,8 @@ createApp({
             }
         }
     }
-}).mount('#status-app');
+    }).mount('#status-app');
+})();
 </script>
 
 <style>

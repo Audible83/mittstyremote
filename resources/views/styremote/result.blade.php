@@ -72,24 +72,26 @@
 
 <script type="module">
 // Wait for Vue to be available
-await new Promise(resolve => {
-    if (window.Vue) resolve();
-    else {
-        const checkVue = setInterval(() => {
-            if (window.Vue) {
-                clearInterval(checkVue);
-                resolve();
-            }
-        }, 100);
-    }
-});
+(async () => {
+    await new Promise(resolve => {
+        if (window.Vue) {
+            resolve();
+        } else {
+            const checkVue = setInterval(() => {
+                if (window.Vue) {
+                    clearInterval(checkVue);
+                    resolve();
+                }
+            }, 100);
+        }
+    });
 
-const { createApp } = window.Vue;
+    const { createApp } = window.Vue;
 
-// Get CSRF token
-const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-createApp({
+    createApp({
     data() {
         return {
             meetingId: {!! json_encode($meetingId) !!},
@@ -150,6 +152,7 @@ createApp({
             }
         }
     }
-}).mount('#result-app');
+    }).mount('#result-app');
+})();
 </script>
 @endsection
