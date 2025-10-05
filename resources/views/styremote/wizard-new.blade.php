@@ -30,9 +30,33 @@
 
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium mb-2">Org.nr (valgfritt)</label>
-                <input v-model="company.orgnr" type="text" maxlength="9"
-                       class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
+                <label class="block text-sm font-medium mb-2">
+                    Org.nr (valgfritt)
+                    <span v-if="lookupLoading" class="ml-2 text-blue-600 text-sm">
+                        <svg class="animate-spin h-4 w-4 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Henter info...
+                    </span>
+                    <span v-if="lookupSuccess && !lookupLoading" class="ml-2 text-green-600 text-sm">
+                        ✓ Funnet
+                    </span>
+                    <span v-if="lookupError && !lookupLoading" class="ml-2 text-red-600 text-sm">
+                        ✗ {{ lookupError }}
+                    </span>
+                </label>
+                <input v-model="company.orgnr"
+                       type="text"
+                       maxlength="9"
+                       pattern="[0-9]{9}"
+                       @input="onOrgnrInput"
+                       class="w-full border-2 rounded-xl px-4 py-3 focus:outline-none"
+                       :class="{
+                           'border-gray-200 focus:border-blue-500': !lookupError && !lookupSuccess,
+                           'border-green-500 focus:border-green-500': lookupSuccess && !lookupError,
+                           'border-red-500 focus:border-red-500': lookupError
+                       }"
                        placeholder="123456789">
             </div>
 
@@ -258,7 +282,11 @@ const app = createApp({
             styrenotat: '',
             generating: false,
             meetingId: null,
-            vadRecorder: null
+            vadRecorder: null,
+            lookupLoading: false,
+            lookupSuccess: false,
+            lookupError: null,
+            lookupTimeout: null
         };
     },
     methods: {
@@ -268,6 +296,59 @@ const app = createApp({
                 return;
             }
             this.step++;
+        },
+        onOrgnrInput(event) {
+            const orgnr = event.target.value;
+
+            // Reset states
+            this.lookupSuccess = false;
+            this.lookupError = null;
+
+            // Only lookup if we have exactly 9 digits
+            if (orgnr && orgnr.length === 9 && /^\d{9}$/.test(orgnr)) {
+                // Debounce the lookup
+                clearTimeout(this.lookupTimeout);
+                this.lookupTimeout = setTimeout(() => {
+                    this.lookupCompany(orgnr);
+                }, 500);
+            }
+        },
+        async lookupCompany(orgnr) {
+            this.lookupLoading = true;
+            this.lookupError = null;
+
+            try {
+                const response = await fetch('/api/company/lookup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ orgnr })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Auto-fill company information
+                    if (data.name) {
+                        this.company.name = data.name;
+                        this.lookupSuccess = true;
+                        console.log('[Lookup] Company found:', data.name);
+                    } else {
+                        this.lookupError = 'Ingen data funnet';
+                    }
+                } else {
+                    const error = await response.json();
+                    this.lookupError = error.message || 'Fant ikke org.nr';
+                    console.error('[Lookup] Error:', error);
+                }
+            } catch (error) {
+                this.lookupError = 'Nettverksfeil';
+                console.error('[Lookup] Network error:', error);
+            } finally {
+                this.lookupLoading = false;
+            }
         },
         async startRecording() {
             if (!this.consent) return;
