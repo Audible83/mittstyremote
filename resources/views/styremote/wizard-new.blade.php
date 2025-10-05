@@ -184,7 +184,22 @@
 </div>
 
 <script type="module">
-import { createApp } from 'vue';
+// Wait for Vue to load
+(async () => {
+    await new Promise(resolve => {
+        if (window.Vue) {
+            resolve();
+        } else {
+            const checkVue = setInterval(() => {
+                if (window.Vue) {
+                    clearInterval(checkVue);
+                    resolve();
+                }
+            }, 100);
+        }
+    });
+
+    const { createApp } = window.Vue;
 
 createApp({
     data() {
@@ -314,5 +329,10 @@ createApp({
         }
     }
 }).mount('#app');
+
+})().catch(err => {
+    console.error('Failed to initialize:', err);
+    alert('Failed to load app: ' + err.message);
+});
 </script>
 @endsection
