@@ -49,12 +49,12 @@ class PdfService
                 'meeting_id' => $meeting->id
             ]);
 
-            // Sanitize content to prevent XSS
-            $sanitizedContent = $this->sanitizeContent($meeting->minutes_content);
+            // Convert markdown to HTML for better formatting
+            $htmlContent = $this->markdownToHtml($meeting->minutes_content);
 
             $pdf = Pdf::loadView('pdf.minutes', [
                 'meeting' => $meeting,
-                'content' => $sanitizedContent,
+                'content' => $htmlContent,
             ]);
 
             $filename = "minutes_{$meeting->id}_" . now()->format('Ymd_His') . ".pdf";
@@ -200,17 +200,61 @@ class PdfService
     }
 
     /**
-     * Sanitize content to prevent XSS in PDFs
+     * Convert markdown to HTML for PDF
      */
-    private function sanitizeContent(string $content): string
+    private function markdownToHtml(string $markdown): string
     {
-        // Remove potentially dangerous HTML tags
-        $content = strip_tags($content, '<p><br><strong><em><u><h1><h2><h3><h4><h5><h6><ul><ol><li><table><tr><td><th><thead><tbody>');
+        $html = $markdown;
 
-        // Encode special characters
-        $content = htmlspecialchars($content, ENT_QUOTES | ENT_HTML5, 'UTF-8', false);
+        // Headers
+        $html = preg_replace('/^# (.+)$/m', '<h1>$1</h1>', $html);
+        $html = preg_replace('/^## (.+)$/m', '<h2>$1</h2>', $html);
+        $html = preg_replace('/^### (.+)$/m', '<h3>$1</h3>', $html);
+        $html = preg_replace('/^#### (.+)$/m', '<h4>$1</h4>', $html);
 
-        return $content;
+        // Bold with special handling for VEDTAK
+        $html = preg_replace('/\*\*VEDTAK:\*\*/', '<div class="vedtak"><strong>VEDTAK:</strong>', $html);
+        $html = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $html);
+
+        // Close VEDTAK divs (find lines after VEDTAK and before next heading/empty line)
+        $html = preg_replace('/(class="vedtak"><strong>VEDTAK:<\/strong>.*?)(?=<h[234]|$)/s', '$1</div>', $html);
+
+        // Italic
+        $html = preg_replace('/\*([^*]+?)\*/', '<em>$1</em>', $html);
+
+        // Lists
+        $lines = explode("\n", $html);
+        $inList = false;
+        $processedLines = [];
+
+        foreach ($lines as $line) {
+            if (preg_match('/^[-*] (.+)$/', $line, $matches)) {
+                if (!$inList) {
+                    $processedLines[] = '<ul>';
+                    $inList = true;
+                }
+                $processedLines[] = '<li>' . $matches[1] . '</li>';
+            } else {
+                if ($inList) {
+                    $processedLines[] = '</ul>';
+                    $inList = false;
+                }
+                $processedLines[] = $line;
+            }
+        }
+
+        if ($inList) {
+            $processedLines[] = '</ul>';
+        }
+
+        $html = implode("\n", $processedLines);
+
+        // Paragraphs and line breaks
+        $html = preg_replace('/\n\n+/', '</p><p>', $html);
+        $html = '<p>' . $html . '</p>';
+        $html = str_replace("\n", '<br>', $html);
+
+        return $html;
     }
 
     /**

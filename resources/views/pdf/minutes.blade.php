@@ -21,6 +21,32 @@
             font-size: 14pt;
             margin-top: 1cm;
             margin-bottom: 0.4cm;
+            font-weight: bold;
+        }
+        h3 {
+            font-size: 12pt;
+            margin-top: 0.7cm;
+            margin-bottom: 0.3cm;
+            font-weight: bold;
+        }
+        strong {
+            font-weight: bold;
+        }
+        ul, ol {
+            margin-left: 0.8cm;
+            margin-bottom: 0.5cm;
+        }
+        li {
+            margin-bottom: 0.2cm;
+        }
+        p {
+            margin-bottom: 0.4cm;
+        }
+        .vedtak {
+            background-color: #fffbcc;
+            padding: 0.3cm;
+            margin: 0.3cm 0;
+            border-left: 3px solid #f39c12;
         }
         .header {
             text-align: center;
@@ -95,7 +121,7 @@
     </div>
 
     <div class="content">
-        {!! nl2br(e($content)) !!}
+        {!! $content !!}
     </div>
 
     <div class="signature">
@@ -108,7 +134,7 @@
                 </td>
                 <td style="width: 50%;">
                     <div class="signature-line">
-                        Protokollfører
+                        Protokollfører (MittStyremøte.no)
                     </div>
                 </td>
             </tr>
@@ -116,7 +142,7 @@
     </div>
 
     <div class="footer">
-        Generert {{ now()->format('d.m.Y H:i') }} med Mitt Styremøte
+        Generert {{ now()->format('d.m.Y H:i') }} med MittStyremøte.no
     </div>
 </body>
 </html>

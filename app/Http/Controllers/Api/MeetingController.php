@@ -453,7 +453,7 @@ class MeetingController extends Controller
                 []
             );
 
-            // Convert markdown to HTML (simple conversion)
+            // Convert markdown to HTML
             $html = $this->markdownToHtml($minutes);
 
             // Update meeting with generated content
@@ -461,6 +461,16 @@ class MeetingController extends Controller
                 'minutes_content' => $minutes,
                 'state' => 'ready'
             ]);
+
+            // Generate PDF
+            try {
+                $pdfService = app(\App\Services\PdfService::class);
+                $pdfService->generateMinutesPdf($meeting);
+                \Log::info("PDF generated for meeting {$meeting->id}");
+            } catch (\Exception $e) {
+                \Log::error("PDF generation failed for meeting {$meeting->id}: " . $e->getMessage());
+                // Continue anyway - PDF is optional
+            }
 
             AuditLog::log('notat.generated', $meeting->id);
 
@@ -481,34 +491,73 @@ class MeetingController extends Controller
     }
 
     /**
-     * Simple markdown to HTML converter
+     * Enhanced markdown to HTML converter with better formatting
      */
     private function markdownToHtml(string $markdown): string
     {
-        // Basic markdown conversion
         $html = $markdown;
 
-        // Headers
-        $html = preg_replace('/^# (.+)$/m', '<h1>$1</h1>', $html);
-        $html = preg_replace('/^## (.+)$/m', '<h2>$1</h2>', $html);
-        $html = preg_replace('/^### (.+)$/m', '<h3>$1</h3>', $html);
+        // Headers with styling
+        $html = preg_replace('/^# (.+)$/m', '<h1 class="text-3xl font-bold mb-4 mt-6 border-b-2 border-gray-300 pb-2">$1</h1>', $html);
+        $html = preg_replace('/^## (.+)$/m', '<h2 class="text-2xl font-semibold mb-3 mt-5">$1</h2>', $html);
+        $html = preg_replace('/^### (.+)$/m', '<h3 class="text-xl font-semibold mb-2 mt-4">$1</h3>', $html);
+        $html = preg_replace('/^#### (.+)$/m', '<h4 class="text-lg font-semibold mb-2 mt-3">$1</h4>', $html);
 
-        // Bold
-        $html = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $html);
+        // Bold with highlighting for VEDTAK
+        $html = preg_replace('/\*\*VEDTAK:\*\*/', '<strong class="bg-yellow-100 text-yellow-900 px-2 py-1 rounded">VEDTAK:</strong>', $html);
+        $html = preg_replace('/\*\*(.+?)\*\*/', '<strong class="font-bold">$1</strong>', $html);
 
         // Italic
-        $html = preg_replace('/\*(.+?)\*/', '<em>$1</em>', $html);
+        $html = preg_replace('/\*([^*]+?)\*/', '<em class="italic">$1</em>', $html);
 
-        // Lists
-        $html = preg_replace('/^- (.+)$/m', '<li>$1</li>', $html);
-        $html = preg_replace('/(<li>.*<\/li>)/s', '<ul>$1</ul>', $html);
+        // Process lists properly
+        $lines = explode("\n", $html);
+        $inList = false;
+        $processedLines = [];
+
+        foreach ($lines as $line) {
+            if (preg_match('/^[-*] (.+)$/', $line, $matches)) {
+                if (!$inList) {
+                    $processedLines[] = '<ul class="list-disc list-inside ml-4 mb-3 space-y-1">';
+                    $inList = true;
+                }
+                $processedLines[] = '<li class="ml-2">' . $matches[1] . '</li>';
+            } else {
+                if ($inList) {
+                    $processedLines[] = '</ul>';
+                    $inList = false;
+                }
+                $processedLines[] = $line;
+            }
+        }
+
+        if ($inList) {
+            $processedLines[] = '</ul>';
+        }
+
+        $html = implode("\n", $processedLines);
+
+        // Tables (basic support)
+        $html = preg_replace('/<table>/', '<table class="min-w-full border-collapse border border-gray-300 my-4">', $html);
+        $html = preg_replace('/<th>/', '<th class="border border-gray-300 px-4 py-2 bg-gray-100 font-semibold text-left">', $html);
+        $html = preg_replace('/<td>/', '<td class="border border-gray-300 px-4 py-2">', $html);
 
         // Paragraphs
-        $html = preg_replace('/\n\n/', '</p><p>', $html);
-        $html = '<p>' . $html . '</p>';
+        $html = preg_replace('/\n\n+/', '</p><p class="mb-3">', $html);
+        $html = '<div class="space-y-3"><p class="mb-3">' . $html . '</p></div>';
 
         // Line breaks
         $html = preg_replace('/\n/', '<br>', $html);
+
+        // Signature section styling
+        $html = preg_replace(
+            '/(<p[^>]*>.*?)(Signatur.*?styreleder.*?protokollfører.*?)(<\/p>)/is',
+            '$1<div class="mt-8 pt-6 border-t-2 border-gray-300"><div class="grid grid-cols-2 gap-8 mt-6">
+                <div class="border-t border-gray-400 pt-2"><p class="text-sm text-gray-600">Styreleder</p></div>
+                <div class="border-t border-gray-400 pt-2"><p class="text-sm text-gray-600">Protokollfører (MittStyremøte.no)</p></div>
+            </div></div>$3',
+            $html
+        );
 
         return $html;
     }

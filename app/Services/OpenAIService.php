@@ -198,6 +198,7 @@ class OpenAIService
             $userPrompt .= "Dato/tid: {$meetingData['meeting_datetime']}\n";
             $userPrompt .= "Sted: {$meetingData['meeting_location']}\n";
             $userPrompt .= "Møteleder: {$meetingData['chair_name']}\n";
+            $userPrompt .= "Protokollfører: MittStyremøte.no\n";
             $userPrompt .= "Beslutningsdyktig: " . ($meetingData['quorum_ok'] ? 'Ja' : 'Nei') . "\n\n";
             $userPrompt .= "DELTAKERE:\n{$participantsList}\n\n";
 
