@@ -3,7 +3,7 @@
 @section('title', 'Resultat - Mitt Styremøte')
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 py-8" id="result-app">
+<div class="max-w-6xl mx-auto px-4 py-8" id="result-app" v-cloak>
     <div class="bg-white rounded-lg shadow-lg p-8">
         <h1 class="text-3xl font-bold mb-2 text-center">Møte ferdig behandlet! 🎉</h1>
         <p class="text-center text-gray-600 mb-8">Dokumentene er klare for nedlasting</p>
