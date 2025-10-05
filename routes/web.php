@@ -12,7 +12,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/styremote/ny', function () {
-    return view('styremote.wizard');
+    return view('styremote.wizard-new');
 })->name('meeting.wizard');
 
 Route::get('/styremote/{meeting}/status', function ($meetingId) {
