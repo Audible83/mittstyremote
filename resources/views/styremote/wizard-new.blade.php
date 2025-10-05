@@ -4,6 +4,7 @@
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
+<h1 style="color: red; padding: 20px;">TEST - If you see this, HTML is rendering</h1>
 <div id="app">
     <!-- Progress Bar -->
     <div class="bg-white border-b sticky top-0 z-50">
