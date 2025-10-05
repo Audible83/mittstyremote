@@ -21,11 +21,23 @@ class MeetingController extends Controller
             'company_orgnr' => 'nullable|string|size:9|regex:/^[0-9]{9}$/',
             'company_address' => 'nullable|string|max:500',
             'meeting_datetime' => 'required|date|after:2020-01-01|before:2030-12-31',
-            'meeting_location' => 'required|string|max:255',
-            'chair_name' => 'required|string|max:255|regex:/^[\pL\s\-0-9\.]+$/u',
-            'quorum_ok' => 'required|boolean',
+            'meeting_location' => 'nullable|string|max:255',
+            'chair_name' => 'nullable|string|max:255|regex:/^[\pL\s\-0-9\.]+$/u',
+            'quorum_ok' => 'nullable|boolean',
             'agenda_text' => 'nullable|string|max:10000',
+            'participants' => 'nullable|array|min:1|max:50',
+            'participants.*.name' => 'required_with:participants|string|max:255|regex:/^[\pL\s\-0-9\.]+$/u',
+            'participants.*.role' => 'required_with:participants|string|in:styreleder,styremedlem,varamedlem,daglig_leder,observator',
         ]);
+
+        // Extract participants if provided
+        $participants = $validated['participants'] ?? [];
+        unset($validated['participants']);
+
+        // Set defaults for optional fields
+        $validated['meeting_location'] = $validated['meeting_location'] ?? 'Digitalt møte';
+        $validated['chair_name'] = $validated['chair_name'] ?? ($participants[0]['name'] ?? 'Ikke spesifisert');
+        $validated['quorum_ok'] = $validated['quorum_ok'] ?? true;
 
         $meeting = Meeting::create(array_merge($validated, [
             'user_id' => auth()->id(),
@@ -34,6 +46,17 @@ class MeetingController extends Controller
                 ? now()->addHours(config('app.demo_retention_hours', 48))
                 : null,
         ]));
+
+        // Create participants if provided
+        if (!empty($participants)) {
+            foreach ($participants as $participantData) {
+                Participant::create(array_merge($participantData, [
+                    'meeting_id' => $meeting->id,
+                    'is_board_member' => in_array($participantData['role'], ['styreleder', 'styremedlem', 'varamedlem']),
+                    'is_present' => true,
+                ]));
+            }
+        }
 
         // Track session for demo mode
         if (!auth()->check()) {
