@@ -2,9 +2,27 @@
 <html lang="nb">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Mitt Styremøte')</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Opptak og AI-genererte styrenotater for norske styremøter">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="MittStyremøte">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.webmanifest">
+
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/icon-192.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/images/icon-512.png">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -39,5 +57,32 @@
             </p>
         </div>
     </footer>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('[SW] Service worker registered:', registration.scope);
+
+                        // Check for updates periodically
+                        setInterval(() => {
+                            registration.update();
+                        }, 60 * 60 * 1000); // Check every hour
+                    })
+                    .catch((error) => {
+                        console.error('[SW] Service worker registration failed:', error);
+                    });
+
+                // Handle service worker updates
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    console.log('[SW] New service worker activated');
+                    // Optionally reload the page
+                    // window.location.reload();
+                });
+            });
+        }
+    </script>
 </body>
 </html>
