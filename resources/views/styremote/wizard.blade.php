@@ -7,7 +7,6 @@
     <div id="wizard-app">
     <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
         <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">Nytt Styremøte</h1>
-        <p style="background: yellow; padding: 10px;">DEBUG: Step = @{{ step }}</p>
 
         <!-- Progress Steps -->
         <div class="flex flex-wrap justify-between mb-8 sm:mb-12 gap-y-4">
@@ -34,7 +33,7 @@
         </div>
 
         <!-- Step 1: Company -->
-        <div v-show="step === 1" class="step-content" style="border: 2px solid red;">
+        <div v-show="step === 1" class="step-content">
             <h2 class="text-2xl font-semibold mb-6">Selskapsinfo</h2>
 
             <div class="mb-4">
@@ -254,33 +253,25 @@
 <script type="module">
 // Wait for app.js to load Vue globally
 (async () => {
-    console.log('[Wizard] Starting initialization...');
-
     await new Promise(resolve => {
         if (window.Vue) {
-            console.log('[Wizard] Vue already available');
             resolve();
         } else {
-            console.log('[Wizard] Waiting for Vue...');
             const checkVue = setInterval(() => {
                 if (window.Vue) {
-                    console.log('[Wizard] Vue now available');
                     clearInterval(checkVue);
                     resolve();
                 }
             }, 100);
 
-            // Timeout after 5 seconds
             setTimeout(() => {
                 clearInterval(checkVue);
-                console.error('[Wizard] Vue failed to load after 5 seconds');
                 alert('Vue failed to load. Please refresh the page.');
             }, 5000);
         }
     });
 
     const { createApp } = window.Vue;
-    console.log('[Wizard] Creating Vue app...');
 
     // Get CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -534,39 +525,8 @@
         }
     };
 
-    // Get the template before Vue mounts
-    const appElement = document.getElementById('wizard-app');
-    console.log('[Wizard] Template HTML length before mount:', appElement.innerHTML.length);
-    console.log('[Wizard] Template HTML preview:', appElement.innerHTML.substring(0, 200));
-
-    console.log('[Wizard] Creating app with config:', appConfig);
     const app = createApp(appConfig);
-    console.log('[Wizard] App created, mounting to #wizard-app');
-    const vm = app.mount('#wizard-app');
-    console.log('[Wizard] Vue app mounted successfully');
-    console.log('[Wizard] Vue instance:', vm);
-    console.log('[Wizard] Vue instance step:', vm.step);
-
-    // Debug: Log if v-cloak was removed
-    const appElement = document.getElementById('wizard-app');
-    console.log('[Wizard] v-cloak attribute present:', appElement.hasAttribute('v-cloak'));
-    console.log('[Wizard] App element display:', window.getComputedStyle(appElement).display);
-    console.log('[Wizard] App element innerHTML length:', appElement.innerHTML.length);
-
-    // Check if step content is visible
-    setTimeout(() => {
-        const stepContent = document.querySelector('.step-content');
-        if (stepContent) {
-            console.log('[Wizard] Step content found:', stepContent);
-            console.log('[Wizard] Step content display:', window.getComputedStyle(stepContent).display);
-        } else {
-            console.error('[Wizard] No .step-content element found!');
-        }
-
-        // Log all elements with v-show
-        const vShowElements = document.querySelectorAll('[v-show]');
-        console.log('[Wizard] Elements with v-show:', vShowElements.length);
-    }, 100);
+    app.mount('#wizard-app');
 })().catch(err => {
     console.error('[Wizard] Initialization error:', err);
     alert('Failed to initialize wizard: ' + err.message);
