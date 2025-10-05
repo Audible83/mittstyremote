@@ -24,7 +24,7 @@
     </div>
 
     <!-- Step 1: Company Info -->
-    <div v-if="step === 1" class="max-w-2xl mx-auto px-4 py-8">
+    <div v-if="step === 1" class="max-w-2xl mx-auto px-4 py-8 pb-32 md:pb-8">
         <h1 class="text-3xl font-bold mb-2">Hvilket selskap?</h1>
         <p class="text-gray-600 mb-8">Grunnleggende informasjon om selskapet</p>
 
@@ -109,14 +109,15 @@
             </div>
         </div>
 
+        <!-- Desktop only button (hidden on mobile - bottom nav shows instead) -->
         <button @click="nextStep" :disabled="!company.name || !company.meetingDate"
-                class="mt-8 w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                class="mt-8 w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed hidden md:block">
             Fortsett
         </button>
     </div>
 
     <!-- Step 2: Participants -->
-    <div v-if="step === 2" class="max-w-2xl mx-auto px-4 py-8">
+    <div v-if="step === 2" class="max-w-2xl mx-auto px-4 py-8 pb-32 md:pb-8">
         <h1 class="text-3xl font-bold mb-2">Hvem deltar?</h1>
         <p class="text-gray-600 mb-8">Legg til alle møtedeltakere</p>
 
@@ -149,13 +150,14 @@
             + Legg til deltaker
         </button>
 
-        <button @click="nextStep" class="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700">
+        <!-- Desktop only button -->
+        <button @click="nextStep" class="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700 hidden md:block">
             Fortsett
         </button>
     </div>
 
     <!-- Step 3: Consent -->
-    <div v-if="step === 3" class="max-w-2xl mx-auto px-4 py-8">
+    <div v-if="step === 3" class="max-w-2xl mx-auto px-4 py-8 pb-32 md:pb-8">
         <h1 class="text-3xl font-bold mb-2">Samtykke</h1>
         <p class="text-gray-600 mb-8">Alle må godkjenne opptak og AI-behandling</p>
 
@@ -174,10 +176,41 @@
             <span class="text-sm">Jeg bekrefter at <strong>alle deltakere har samtykket</strong> til opptak og AI-behandling.</span>
         </label>
 
+        <!-- Desktop only button -->
         <button @click="startRecording" :disabled="!consent"
-                class="w-full bg-red-600 text-white py-4 rounded-xl font-semibold hover:bg-red-700 disabled:opacity-50">
+                class="w-full bg-red-600 text-white py-4 rounded-xl font-semibold hover:bg-red-700 disabled:opacity-50 hidden md:block">
             🎙️ Start opptak
         </button>
+    </div>
+
+    <!-- Mobile Bottom Navigation (Steps 1-3 only) -->
+    <div v-if="step >= 1 && step <= 3" class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 safe-area-bottom z-50">
+        <div class="flex items-center gap-3 px-4 py-3">
+            <!-- Back Button -->
+            <button v-if="step > 1" @click="step--"
+                    class="px-4 py-3 border-2 border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50">
+                ← Tilbake
+            </button>
+
+            <!-- Step Indicator -->
+            <div class="flex-1 text-center">
+                <span class="text-sm font-medium text-gray-600">Steg @{{ step }} av 3</span>
+            </div>
+
+            <!-- Primary Action Button -->
+            <button v-if="step === 1" @click="nextStep" :disabled="!company.name || !company.meetingDate"
+                    class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                Fortsett
+            </button>
+            <button v-if="step === 2" @click="nextStep"
+                    class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700">
+                Fortsett
+            </button>
+            <button v-if="step === 3" @click="startRecording" :disabled="!consent"
+                    class="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50">
+                🎙️ Start
+            </button>
+        </div>
     </div>
 
     <!-- Step 4: Recording with Live Transcription -->
