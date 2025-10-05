@@ -6,11 +6,28 @@
 <div class="min-h-screen bg-gray-50">
 <div id="app-wrapper">
 <div id="app">
-    <!-- Progress Bar -->
+    <!-- Progress Bar with Clickable Steps -->
     <div class="bg-white border-b sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-3">
-            <div class="flex items-center gap-4">
-                <button v-if="step > 1 && step < 5" @click="step--" class="text-blue-600 font-medium">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <!-- Desktop: Show step names -->
+            <div class="hidden md:flex items-center justify-between gap-2">
+                <button v-for="(stepInfo, index) in stepLabels" :key="index"
+                        @click="goToStep(index + 1)"
+                        :disabled="index + 1 > step"
+                        class="flex-1 text-center py-2 rounded-lg transition-all"
+                        :class="{
+                            'bg-blue-600 text-white font-semibold': step === index + 1,
+                            'bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer': index + 1 < step,
+                            'bg-gray-100 text-gray-400 cursor-not-allowed': index + 1 > step
+                        }">
+                    <div class="text-xs mb-1">{{ index + 1 }}</div>
+                    <div class="text-sm">{{ stepInfo }}</div>
+                </button>
+            </div>
+
+            <!-- Mobile: Simple progress bar -->
+            <div class="md:hidden flex items-center gap-4">
+                <button v-if="step > 1 && step < 5" @click="step--" class="text-blue-600 font-medium text-sm">
                     ← Tilbake
                 </button>
                 <div class="flex-1">
@@ -330,6 +347,13 @@ const app = createApp({
     data() {
         return {
             step: 1,
+            stepLabels: [
+                'Selskap',
+                'Deltakere',
+                'Samtykke',
+                'Opptak',
+                'Styrenotat'
+            ],
             company: {
                 orgnr: '',
                 name: '',
@@ -360,6 +384,13 @@ const app = createApp({
         };
     },
     methods: {
+        goToStep(targetStep) {
+            // Only allow going back to previous steps, not forward
+            if (targetStep < this.step && targetStep >= 1) {
+                this.step = targetStep;
+                console.log('[Navigation] Jumped to step', targetStep);
+            }
+        },
         validateStep1() {
             this.errors.companyName = '';
             this.errors.meetingDate = '';
