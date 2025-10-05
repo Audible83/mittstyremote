@@ -1,9 +1,10 @@
 import './bootstrap';
-import { createApp } from 'vue';
+// Import Vue with template compiler (full build)
+import * as Vue from 'vue';
 import { VADRecorder } from './vad-recorder';
 
-// Vue 3 is available globally if needed
-window.Vue = { createApp };
+// Make Vue 3 available globally with full API
+window.Vue = Vue;
 
 // Make VADRecorder available globally
 window.VADRecorder = VADRecorder;

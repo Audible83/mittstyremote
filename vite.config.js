@@ -8,4 +8,10 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    resolve: {
+        alias: {
+            // Use Vue with template compiler for in-DOM templates
+            'vue': 'vue/dist/vue.esm-bundler.js'
+        }
+    }
 });
