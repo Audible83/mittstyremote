@@ -30,6 +30,10 @@ export class VADRecorder {
 
             // Initialize VAD with optimal settings for meeting transcription
             this.vad = await MicVAD.new({
+                // Model paths (absolute URLs from public directory)
+                modelURL: '/silero_vad_legacy.onnx',
+                workletURL: '/vad.worklet.bundle.min.js',
+
                 // Use recommended settings from docs
                 positiveSpeechThreshold: 0.8, // Higher threshold = more confident speech detection
                 negativeSpeechThreshold: 0.35, // Lower = quicker to detect silence
